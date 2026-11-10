@@ -4,9 +4,16 @@
 
 @layer base {
   body {
-    @apply bg-gray-50 text-gray-900;
+    background-color: #f5f0e8;
+    color: #1a2e1a;
   }
 }
+
+/* Dark-green & beige custom scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #f5f0e8; }
+::-webkit-scrollbar-thumb { background: #2d5a27; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #1a3a16; }
 
 /* Custom print styles for e-ticket & manifest */
 @media print {

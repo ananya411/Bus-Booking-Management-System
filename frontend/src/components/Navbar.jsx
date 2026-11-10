@@ -1,7 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Bus, User, LogOut, Ticket, Shield, LayoutDashboard, Menu, X, ChevronDown } from 'lucide-react';
+import { Bus, LogOut, Ticket, Shield, LayoutDashboard, Menu, X, ChevronDown } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+
+const G = {
+  bg: '#1a3a16',
+  bgDark: '#0f2a0c',
+  accent: '#7db575',
+  beige: '#faf7f0',
+  beige2: '#f5f0e8',
+  text: '#d6e8d3',
+  textMuted: '#7db575',
+  border: 'rgba(125,181,117,0.25)',
+};
 
 export default function Navbar() {
   const { user, isAuthenticated, logout, isAdmin, isOperator } = useAuth();
@@ -18,7 +29,6 @@ export default function Navbar() {
     navigate('/');
   };
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -29,137 +39,103 @@ export default function Navbar() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Close mobile menu on route change
   useEffect(() => {
     setMobileMenuOpen(false);
     setDropdownOpen(false);
   }, [location.pathname]);
 
+  const navLinkStyle = (path) => ({
+    fontSize: '0.875rem',
+    fontWeight: location.pathname === path || location.pathname.startsWith(path + '/') ? 700 : 500,
+    color: location.pathname === path || location.pathname.startsWith(path + '/') ? G.beige : G.text,
+    borderBottom: location.pathname === path || location.pathname.startsWith(path + '/') ? `2px solid ${G.accent}` : '2px solid transparent',
+    paddingBottom: '2px',
+    transition: 'all 0.15s',
+    textDecoration: 'none',
+  });
+
   return (
-    <header className="bg-white border-b border-gray-100 sticky top-0 z-40 shadow-sm">
+    <header style={{ background: G.bg, borderBottom: `1px solid ${G.border}`, position: 'sticky', top: 0, zIndex: 40, boxShadow: '0 2px 12px rgba(0,0,0,0.3)' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2.5 group">
-            <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-600/30 group-hover:bg-indigo-700 transition-colors">
+          <Link to="/" className="flex items-center space-x-2.5 group" style={{ textDecoration: 'none' }}>
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg transition-all"
+              style={{ background: G.accent, color: G.bgDark }}
+            >
               <Bus className="w-6 h-6" />
             </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-indigo-700 to-indigo-500 bg-clip-text text-transparent">
-              BusMitra
+            <span className="text-xl font-extrabold tracking-tight" style={{ color: G.beige }}>
+              Bus<span style={{ color: G.accent }}>Mitra</span>
             </span>
           </Link>
 
-          {/* Center Navigation Links */}
+          {/* Center Nav */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link
-              to="/"
-              className={`text-sm font-medium transition-colors ${
-                location.pathname === '/' ? 'text-indigo-600 font-semibold' : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Home
-            </Link>
-            <Link
-              to="/search"
-              className={`text-sm font-medium transition-colors ${
-                location.pathname.startsWith('/search') ? 'text-indigo-600 font-semibold' : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Find Buses
-            </Link>
+            <Link to="/" style={navLinkStyle('/')} onMouseEnter={(e) => { e.currentTarget.style.color = G.beige; }} onMouseLeave={(e) => { e.currentTarget.style.color = location.pathname === '/' ? G.beige : G.text; }}>Home</Link>
+            <Link to="/search" style={navLinkStyle('/search')} onMouseEnter={(e) => { e.currentTarget.style.color = G.beige; }} onMouseLeave={(e) => { e.currentTarget.style.color = location.pathname.startsWith('/search') ? G.beige : G.text; }}>Find Buses</Link>
             {isAuthenticated && (
-              <Link
-                to="/my-bookings"
-                className={`text-sm font-medium transition-colors ${
-                  location.pathname === '/my-bookings' ? 'text-indigo-600 font-semibold' : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                My Bookings
-              </Link>
+              <Link to="/my-bookings" style={navLinkStyle('/my-bookings')} onMouseEnter={(e) => { e.currentTarget.style.color = G.beige; }} onMouseLeave={(e) => { e.currentTarget.style.color = location.pathname === '/my-bookings' ? G.beige : G.text; }}>My Bookings</Link>
             )}
             {isAdmin && (
-              <Link
-                to="/admin/dashboard"
-                className="text-sm font-medium text-indigo-600 hover:text-indigo-800 flex items-center space-x-1"
-              >
+              <Link to="/admin/dashboard" className="flex items-center space-x-1" style={{ color: G.accent, fontSize: '0.875rem', fontWeight: 600, textDecoration: 'none' }}>
                 <Shield className="w-4 h-4" />
                 <span>Admin Portal</span>
               </Link>
             )}
             {isOperator && (
-              <Link
-                to="/operator/trips"
-                className="text-sm font-medium text-indigo-600 hover:text-indigo-800 flex items-center space-x-1"
-              >
+              <Link to="/operator/trips" className="flex items-center space-x-1" style={{ color: G.accent, fontSize: '0.875rem', fontWeight: 600, textDecoration: 'none' }}>
                 <LayoutDashboard className="w-4 h-4" />
                 <span>Operator Trips</span>
               </Link>
             )}
           </nav>
 
-          {/* Right Action Area */}
-          <div className="hidden md:flex items-center space-x-4">
+          {/* Right Actions */}
+          <div className="hidden md:flex items-center space-x-3">
             {isAuthenticated ? (
               <div className="relative" ref={dropdownRef}>
                 <button
                   type="button"
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="flex items-center space-x-2 text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 px-3 py-2 rounded-xl border border-gray-200 transition-colors"
+                  className="flex items-center space-x-2 text-sm font-medium px-3 py-2 rounded-xl border transition-all"
+                  style={{ background: 'rgba(125,181,117,0.12)', borderColor: G.border, color: G.beige }}
                 >
-                  <div className="w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs uppercase">
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs uppercase" style={{ background: G.accent, color: G.bgDark }}>
                     {user?.name ? user.name[0] : 'U'}
                   </div>
                   <span className="max-w-[120px] truncate">{user?.name || user?.email}</span>
-                  <ChevronDown className="w-4 h-4 text-gray-500" />
+                  <ChevronDown className="w-4 h-4" style={{ color: G.textMuted }} />
                 </button>
 
                 {dropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl py-1 border border-gray-100 z-50">
-                    <div className="px-4 py-2 border-b border-gray-100">
-                      <p className="text-sm font-semibold text-gray-900 truncate">{user?.name || 'User'}</p>
-                      <p className="text-xs text-gray-500 truncate">{user?.email}</p>
-                      <span className="inline-block mt-1 px-2 py-0.5 text-[10px] font-bold uppercase rounded bg-indigo-50 text-indigo-700">
+                  <div className="absolute right-0 mt-2 w-56 rounded-xl shadow-2xl py-1 border z-50" style={{ background: G.bgDark, borderColor: G.border }}>
+                    <div className="px-4 py-2.5 border-b" style={{ borderColor: G.border }}>
+                      <p className="text-sm font-semibold truncate" style={{ color: G.beige }}>{user?.name || 'User'}</p>
+                      <p className="text-xs truncate" style={{ color: G.textMuted }}>{user?.email}</p>
+                      <span className="inline-block mt-1 px-2 py-0.5 text-[10px] font-bold uppercase rounded" style={{ background: 'rgba(125,181,117,0.2)', color: G.accent }}>
                         {user?.role || 'customer'}
                       </span>
                     </div>
-
-                    <Link
-                      to="/my-bookings"
-                      onClick={() => setDropdownOpen(false)}
-                      className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <Ticket className="w-4 h-4 mr-3 text-gray-400" />
+                    <Link to="/my-bookings" onClick={() => setDropdownOpen(false)} className="flex items-center px-4 py-2.5 text-sm transition-colors" style={{ color: G.text, textDecoration: 'none' }} onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(125,181,117,0.1)'; }} onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}>
+                      <Ticket className="w-4 h-4 mr-3" style={{ color: G.textMuted }} />
                       My Bookings
                     </Link>
-
                     {isAdmin && (
-                      <Link
-                        to="/admin/dashboard"
-                        onClick={() => setDropdownOpen(false)}
-                        className="flex items-center px-4 py-2.5 text-sm text-indigo-600 hover:bg-indigo-50 transition-colors font-medium"
-                      >
-                        <Shield className="w-4 h-4 mr-3 text-indigo-500" />
+                      <Link to="/admin/dashboard" onClick={() => setDropdownOpen(false)} className="flex items-center px-4 py-2.5 text-sm transition-colors" style={{ color: G.accent, textDecoration: 'none' }} onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(125,181,117,0.1)'; }} onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}>
+                        <Shield className="w-4 h-4 mr-3" />
                         Admin Dashboard
                       </Link>
                     )}
-
                     {isOperator && (
-                      <Link
-                        to="/operator/trips"
-                        onClick={() => setDropdownOpen(false)}
-                        className="flex items-center px-4 py-2.5 text-sm text-indigo-600 hover:bg-indigo-50 transition-colors font-medium"
-                      >
-                        <LayoutDashboard className="w-4 h-4 mr-3 text-indigo-500" />
+                      <Link to="/operator/trips" onClick={() => setDropdownOpen(false)} className="flex items-center px-4 py-2.5 text-sm transition-colors" style={{ color: G.accent, textDecoration: 'none' }} onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(125,181,117,0.1)'; }} onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}>
+                        <LayoutDashboard className="w-4 h-4 mr-3" />
                         Operator Dashboard
                       </Link>
                     )}
-
-                    <button
-                      type="button"
-                      onClick={handleLogout}
-                      className="w-full text-left flex items-center px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 border-t border-gray-100 transition-colors"
-                    >
-                      <LogOut className="w-4 h-4 mr-3 text-red-500" />
+                    <button type="button" onClick={handleLogout} className="w-full text-left flex items-center px-4 py-2.5 text-sm border-t transition-colors" style={{ color: '#f87171', borderColor: G.border, background: 'transparent' }} onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(248,113,113,0.08)'; }} onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}>
+                      <LogOut className="w-4 h-4 mr-3" />
                       Sign Out
                     </button>
                   </div>
@@ -167,30 +143,19 @@ export default function Navbar() {
               </div>
             ) : (
               <div className="flex items-center space-x-3">
-                <Link
-                  to="/login"
-                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 transition-colors"
-                >
+                <Link to="/login" className="px-4 py-2 text-sm font-medium rounded-xl transition-all" style={{ color: G.text, textDecoration: 'none', border: `1px solid ${G.border}` }} onMouseEnter={(e) => { e.currentTarget.style.color = G.beige; e.currentTarget.style.borderColor = G.accent; }} onMouseLeave={(e) => { e.currentTarget.style.color = G.text; e.currentTarget.style.borderColor = G.border; }}>
                   Log In
                 </Link>
-                <Link
-                  to="/register"
-                  className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-sm transition-all"
-                >
+                <Link to="/register" className="px-4 py-2 text-sm font-bold rounded-xl shadow-md transition-all" style={{ background: G.accent, color: G.bgDark, textDecoration: 'none' }} onMouseEnter={(e) => { e.currentTarget.style.background = '#52964a'; }} onMouseLeave={(e) => { e.currentTarget.style.background = G.accent; }}>
                   Register
                 </Link>
               </div>
             )}
           </div>
 
-          {/* Mobile menu button */}
-          <div className="flex md:hidden items-center">
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              type="button"
-              className="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-              aria-label="Toggle menu"
-            >
+          {/* Mobile toggle */}
+          <div className="flex md:hidden">
+            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} type="button" className="p-2 rounded-lg transition-colors" style={{ color: G.text }}>
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
@@ -199,68 +164,26 @@ export default function Navbar() {
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-gray-100 bg-white px-4 pt-3 pb-6 space-y-3">
-          <Link
-            to="/"
-            className="block px-3 py-2 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-50"
-          >
-            Home
-          </Link>
-          <Link
-            to="/search"
-            className="block px-3 py-2 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-50"
-          >
-            Find Buses
-          </Link>
+        <div className="md:hidden border-t px-4 pt-3 pb-6 space-y-2" style={{ background: G.bgDark, borderColor: G.border }}>
+          {[{ to: '/', label: 'Home' }, { to: '/search', label: 'Find Buses' }].map(({ to, label }) => (
+            <Link key={to} to={to} className="block px-3 py-2.5 rounded-lg text-base font-medium transition-colors" style={{ color: G.text, textDecoration: 'none' }} onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(125,181,117,0.1)'; }} onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}>{label}</Link>
+          ))}
           {isAuthenticated ? (
             <>
-              <Link
-                to="/my-bookings"
-                className="block px-3 py-2 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-50"
-              >
-                My Bookings
-              </Link>
-              {isAdmin && (
-                <Link
-                  to="/admin/dashboard"
-                  className="block px-3 py-2 rounded-lg text-base font-medium text-indigo-600 bg-indigo-50"
-                >
-                  Admin Portal
-                </Link>
-              )}
-              {isOperator && (
-                <Link
-                  to="/operator/trips"
-                  className="block px-3 py-2 rounded-lg text-base font-medium text-indigo-600 bg-indigo-50"
-                >
-                  Operator Dashboard
-                </Link>
-              )}
-              <div className="pt-2 border-t border-gray-100">
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="w-full text-left px-3 py-2 rounded-lg text-base font-medium text-red-600 hover:bg-red-50 flex items-center space-x-2"
-                >
+              <Link to="/my-bookings" className="block px-3 py-2.5 rounded-lg text-base font-medium" style={{ color: G.text, textDecoration: 'none' }}>My Bookings</Link>
+              {isAdmin && <Link to="/admin/dashboard" className="block px-3 py-2.5 rounded-lg text-base font-medium" style={{ color: G.accent, textDecoration: 'none' }}>Admin Portal</Link>}
+              {isOperator && <Link to="/operator/trips" className="block px-3 py-2.5 rounded-lg text-base font-medium" style={{ color: G.accent, textDecoration: 'none' }}>Operator Dashboard</Link>}
+              <div className="pt-2 border-t" style={{ borderColor: G.border }}>
+                <button type="button" onClick={handleLogout} className="w-full text-left px-3 py-2.5 rounded-lg text-base font-medium flex items-center space-x-2" style={{ color: '#f87171' }}>
                   <LogOut className="w-5 h-5" />
                   <span>Sign Out ({user?.name || user?.email})</span>
                 </button>
               </div>
             </>
           ) : (
-            <div className="pt-2 border-t border-gray-100 flex flex-col space-y-2">
-              <Link
-                to="/login"
-                className="w-full py-2.5 text-center text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl"
-              >
-                Log In
-              </Link>
-              <Link
-                to="/register"
-                className="w-full py-2.5 text-center text-sm font-semibold text-white bg-indigo-600 rounded-xl"
-              >
-                Register
-              </Link>
+            <div className="pt-2 border-t flex flex-col space-y-2" style={{ borderColor: G.border }}>
+              <Link to="/login" className="w-full py-2.5 text-center text-sm font-semibold rounded-xl" style={{ color: G.beige, background: 'rgba(125,181,117,0.15)', textDecoration: 'none' }}>Log In</Link>
+              <Link to="/register" className="w-full py-2.5 text-center text-sm font-bold rounded-xl" style={{ background: G.accent, color: G.bgDark, textDecoration: 'none' }}>Register</Link>
             </div>
           )}
         </div>
