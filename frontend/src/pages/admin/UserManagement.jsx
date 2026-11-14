@@ -118,23 +118,24 @@ export default function UserManagement() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {filteredUsers.map((user) => {
+                {filteredUsers.map((user, uIdx) => {
                   const role = user.role || 'customer';
+                  const userId = user._id || user.id || user.user_id || `user-${uIdx}`;
                   let roleColor = 'bg-gray-100 text-gray-800';
                   if (role === 'admin') roleColor = 'bg-red-50 text-red-700 border-red-200';
                   if (role === 'operator') roleColor = 'bg-blue-50 text-blue-700 border-blue-200';
-                  if (role === 'customer') roleColor = 'bg-indigo-50 text-indigo-700 border-indigo-200';
+                  if (role === 'customer') roleColor = 'bg-brand-accent/20 text-brand-dark border-brand-accent/40';
 
                   return (
-                    <tr key={user.id || user.user_id} className="hover:bg-gray-50/50">
+                    <tr key={userId} className="hover:bg-gray-50/50">
                       <td className="py-3.5 px-4">
                         <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs uppercase">
+                          <div className="w-8 h-8 rounded-full bg-brand-dark text-brand-accent flex items-center justify-center font-bold text-xs uppercase">
                             {user.name ? user.name[0] : 'U'}
                           </div>
                           <div>
                             <p className="font-bold text-gray-900">{user.name || 'Anonymous'}</p>
-                            <p className="text-[10px] text-gray-400">ID: #{user.id || user.user_id}</p>
+                            <p className="text-[10px] text-gray-400">ID: #{String(userId).slice(-6)}</p>
                           </div>
                         </div>
                       </td>
@@ -155,7 +156,7 @@ export default function UserManagement() {
                       <td className="py-3.5 px-4 text-right">
                         <button
                           onClick={() => handleOpenRoleModal(user)}
-                          className="px-3 py-1.5 bg-gray-100 hover:bg-indigo-50 hover:text-indigo-600 text-gray-700 font-semibold rounded-lg text-xs transition-colors inline-flex items-center space-x-1"
+                          className="px-3 py-1.5 bg-gray-100 hover:bg-brand-accent/20 hover:text-brand-dark text-gray-700 font-semibold rounded-lg text-xs transition-colors inline-flex items-center space-x-1"
                         >
                           <Edit3 className="w-3.5 h-3.5" />
                           <span>Change Role</span>
@@ -192,7 +193,7 @@ export default function UserManagement() {
                 key={option.id}
                 className={`p-3.5 rounded-xl border flex items-start space-x-3 cursor-pointer transition-all ${
                   newRole === option.id
-                    ? 'border-indigo-600 bg-indigo-50/60 ring-2 ring-indigo-500/20'
+                    ? 'border-brand-dark bg-brand-accent/10 ring-2 ring-brand-accent/30'
                     : 'border-gray-200 hover:bg-gray-50'
                 }`}
               >
@@ -202,7 +203,7 @@ export default function UserManagement() {
                   value={option.id}
                   checked={newRole === option.id}
                   onChange={(e) => setNewRole(e.target.value)}
-                  className="mt-1 text-indigo-600 focus:ring-indigo-500"
+                  className="mt-1 accent-[#6DCE05]"
                 />
                 <div>
                   <p className="text-sm font-bold text-gray-900">{option.title}</p>
@@ -223,7 +224,7 @@ export default function UserManagement() {
             <button
               type="submit"
               disabled={updating}
-              className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl disabled:opacity-60 shadow-sm"
+              className="px-5 py-2 bg-brand-accent hover:bg-brand-accent-hover text-brand-dark font-extrabold text-sm rounded-xl disabled:opacity-60 shadow-sm"
             >
               {updating ? 'Saving Role...' : 'Save Role'}
             </button>

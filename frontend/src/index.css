@@ -1,19 +1,43 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  html {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    scroll-behavior: smooth;
+  }
+
   body {
-    background-color: #f5f0e8;
-    color: #1a2e1a;
+    @apply text-gray-800 bg-brand-gray font-sans antialiased;
+  }
+
+  ::selection {
+    background-color: #6DCE05;
+    color: #011810;
   }
 }
 
-/* Dark-green & beige custom scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: #f5f0e8; }
-::-webkit-scrollbar-thumb { background: #2d5a27; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #1a3a16; }
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #061D15;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #14382B;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6DCE05;
+}
 
 /* Custom print styles for e-ticket & manifest */
 @media print {

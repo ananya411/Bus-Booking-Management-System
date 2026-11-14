@@ -9,7 +9,7 @@ export default function LoadingSpinner({ text = 'Loading...', size = 'md', class
   };
 
   return (
-    <div className={`flex flex-col items-center justify-center py-8 text-indigo-600 ${className}`}>
+    <div className={`flex flex-col items-center justify-center py-8 text-brand-accent ${className}`}>
       <Loader2 className={`animate-spin ${sizeClasses[size] || sizeClasses.md}`} />
       {text && <p className="mt-2 text-sm font-medium text-gray-600">{text}</p>}
     </div>

@@ -58,11 +58,18 @@ const createBus = async (busData) => {
   return Bus.create(busData);
 };
 
-const updateBus = async (id, busData) => {
+const updateBus = async (id, busData, user = null) => {
   const bus = await Bus.findById(id);
   if (!bus) {
     const error = new Error('Bus not found');
     error.statusCode = 404;
+    throw error;
+  }
+
+  // Operator can only update buses belonging to their fleet
+  if (user && user.role === 'operator' && bus.operator && bus.operator.toString() !== user._id.toString()) {
+    const error = new Error('Access denied. You can only update buses assigned to your operator account.');
+    error.statusCode = 403;
     throw error;
   }
 
@@ -83,13 +90,21 @@ const updateBus = async (id, busData) => {
   return updatedBus;
 };
 
-const deleteBus = async (id) => {
+const deleteBus = async (id, user = null) => {
   const bus = await Bus.findById(id);
   if (!bus) {
     const error = new Error('Bus not found');
     error.statusCode = 404;
     throw error;
   }
+
+  // Operator can only delete buses belonging to their fleet
+  if (user && user.role === 'operator' && bus.operator && bus.operator.toString() !== user._id.toString()) {
+    const error = new Error('Access denied. You can only delete buses assigned to your operator account.');
+    error.statusCode = 403;
+    throw error;
+  }
+
   await Bus.findByIdAndDelete(id);
   return { id };
 };

@@ -5,6 +5,7 @@ import ErrorMessage from '../../components/ErrorMessage';
 import SuccessMessage from '../../components/SuccessMessage';
 import StatusBadge from '../../components/StatusBadge';
 import Modal from '../../components/Modal';
+import { resolveCityName, resolvePointName } from '../../utils/formatters';
 import { Ticket, Search, Filter, Calendar, ChevronDown, ChevronUp, XCircle, Printer } from 'lucide-react';
 
 export default function BookingManagement() {
@@ -111,7 +112,7 @@ export default function BookingManagement() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
+            className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-brand-accent"
           >
             <option value="all">All Statuses</option>
             <option value="confirmed">Confirmed</option>
@@ -147,14 +148,19 @@ export default function BookingManagement() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {filteredBookings.map((b) => {
-                  const bookingId = b.id || b.booking_id;
-                  const pnr = b.pnr || b.PNR || `BM-${bookingId}`;
+                {filteredBookings.map((b, bIdx) => {
+                  const bookingId = b._id || b.id || b.booking_id || b.pnr || `booking-${bIdx}`;
+                  const pnr = b.pnr || b.PNR || (b._id ? `BM-${String(b._id).slice(-6).toUpperCase()}` : `BM-${bIdx + 1}`);
                   const trip = b.Trip || b.trip || {};
-                  const route = trip.Route || trip.route || {};
+                  const route = trip.Route || trip.route || b.Route || b.route || {};
                   const passengers = b.Passengers || b.passengers || [];
                   const isExpanded = expandedId === bookingId;
                   const isCancelled = String(b.status).toUpperCase() === 'CANCELLED';
+                  const userDisplay = (typeof b.user === 'object' && b.user !== null ? (b.user.name || b.user.email) : null) || b.contact_name || b.contact_email || 'Passenger';
+                  const userEmail = (typeof b.user === 'object' && b.user !== null ? b.user.email : null) || b.contact_email || '';
+                  const seatsDisplay = passengers.length > 0
+                    ? passengers.map((p) => (typeof p === 'object' ? (p.seat_number || p.seatNumber) : p)).filter(Boolean).join(', ')
+                    : (Array.isArray(b.seat_numbers) ? b.seat_numbers.join(', ') : '1');
 
                   return (
                     <React.Fragment key={bookingId}>
@@ -162,24 +168,24 @@ export default function BookingManagement() {
                         onClick={() => setExpandedId(isExpanded ? null : bookingId)}
                         className="hover:bg-gray-50/50 cursor-pointer"
                       >
-                        <td className="py-3.5 px-4 font-mono font-bold text-indigo-600">
+                        <td className="py-3.5 px-4 font-mono font-bold text-brand-dark">
                           {pnr}
                         </td>
                         <td className="py-3.5 px-4">
-                          <p className="font-bold text-gray-900">{b.user?.name || b.contact_name || 'Passenger'}</p>
-                          <p className="text-gray-500 text-[11px]">{b.contact_email || b.user?.email}</p>
+                          <p className="font-bold text-gray-900">{userDisplay}</p>
+                          {userEmail && <p className="text-gray-500 text-[11px]">{userEmail}</p>}
                         </td>
                         <td className="py-3.5 px-4 font-medium text-gray-700">
                           <p className="font-semibold text-gray-900">
-                            {route.source || 'Origin'} → {route.destination || 'Destination'}
+                            {resolveCityName(route.source, 'Origin')} → {resolveCityName(route.destination, 'Destination')}
                           </p>
-                          <p className="text-gray-400 text-[11px]">{trip.trip_date || trip.date || 'Scheduled'}</p>
+                          <p className="text-gray-400 text-[11px]">{trip.trip_date || trip.travelDate || trip.date || 'Scheduled'}</p>
                         </td>
-                        <td className="py-3.5 px-4 font-bold text-indigo-700">
-                          {passengers.map((p) => p.seat_number).join(', ') || b.seat_numbers?.join(', ') || '1'}
+                        <td className="py-3.5 px-4 font-bold text-brand-dark">
+                          {seatsDisplay}
                         </td>
                         <td className="py-3.5 px-4 font-black text-gray-900">
-                          ₹{b.total_fare || b.fare_amount || 0}
+                          ₹{b.total_fare || b.totalFare || b.fare_amount || 0}
                         </td>
                         <td className="py-3.5 px-4">
                           <StatusBadge status={b.status || 'CONFIRMED'} />
@@ -203,19 +209,19 @@ export default function BookingManagement() {
                                 <div>
                                   <span className="font-bold text-gray-400 uppercase">Boarding Location:</span>
                                   <p className="font-semibold text-gray-900 mt-0.5">
-                                    {b.boarding_point || 'Terminal Station'}
+                                    {resolvePointName(b.boardingPoint || b.boarding_point, 'Terminal Station')}
                                   </p>
                                 </div>
                                 <div>
                                   <span className="font-bold text-gray-400 uppercase">Dropping Location:</span>
                                   <p className="font-semibold text-gray-900 mt-0.5">
-                                    {b.dropping_point || 'City Destination Hub'}
+                                    {resolvePointName(b.droppingPoint || b.dropping_point, 'City Destination Hub')}
                                   </p>
                                 </div>
                                 <div>
                                   <span className="font-bold text-gray-400 uppercase">Contact Phone:</span>
                                   <p className="font-semibold text-gray-900 mt-0.5">
-                                    {b.contact_phone || 'N/A'}
+                                    {b.contact_phone || (typeof b.user === 'object' ? b.user?.phone : null) || 'N/A'}
                                   </p>
                                 </div>
                               </div>
@@ -226,12 +232,12 @@ export default function BookingManagement() {
                                   Manifest Passengers:
                                 </h4>
                                 <div className="flex flex-wrap gap-2">
-                                  {passengers.map((p, idx) => (
+                                  {passengers.map((p, pIdx) => (
                                     <span
-                                      key={idx}
+                                      key={pIdx}
                                       className="inline-flex items-center px-3 py-1 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-800"
                                     >
-                                      Seat {p.seat_number}: {p.name} ({p.age}y, {p.gender})
+                                      Seat {p.seat_number || p.seatNumber || (pIdx + 1)}: {p.name || 'Passenger'} ({p.age || '—'}y, {p.gender || '—'})
                                     </span>
                                   ))}
                                 </div>
@@ -286,7 +292,7 @@ export default function BookingManagement() {
               onChange={(e) => setCancelReason(e.target.value)}
               placeholder="e.g. Bus breakdown, passenger requested via support..."
               rows="3"
-              className="w-full p-3 bg-gray-50 border border-gray-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full p-3 bg-gray-50 border border-gray-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-brand-accent"
             />
           </div>
 

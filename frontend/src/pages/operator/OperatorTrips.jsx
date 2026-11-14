@@ -4,6 +4,7 @@ import { operatorApi } from '../../services/api';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import ErrorMessage from '../../components/ErrorMessage';
 import StatusBadge from '../../components/StatusBadge';
+import { resolveCityName } from '../../utils/formatters';
 import { Bus, Calendar, Clock, MapPin, Users, ArrowRight, FileSpreadsheet } from 'lucide-react';
 
 export default function OperatorTrips() {
@@ -80,8 +81,8 @@ export default function OperatorTrips() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {trips.map((trip) => {
-            const tripId = trip.id || trip.trip_id;
+          {trips.map((trip, tIdx) => {
+            const tripId = trip._id || trip.id || trip.trip_id || `trip-${tIdx}`;
             const bus = trip.Bus || trip.bus || {};
             const route = trip.Route || trip.route || {};
             const total = bus.total_seats || trip.total_seats || 36;
@@ -90,20 +91,20 @@ export default function OperatorTrips() {
             return (
               <div
                 key={tripId}
-                className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-5 hover:border-indigo-200 transition-all flex flex-col justify-between"
+                className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-5 hover:border-brand-accent/40 transition-all flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <span className="font-mono text-xs font-bold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-md">
-                      TRIP #{tripId}
+                      TRIP #{String(tripId).slice(-6)}
                     </span>
                     <StatusBadge status={trip.status || 'SCHEDULED'} />
                   </div>
 
                   <div className="flex items-center space-x-2 text-lg font-bold text-gray-900">
-                    <span>{route.source || 'Origin'}</span>
-                    <ArrowRight className="w-4 h-4 text-indigo-500" />
-                    <span>{route.destination || 'Destination'}</span>
+                    <span>{resolveCityName(route.source, 'Origin')}</span>
+                    <ArrowRight className="w-4 h-4 text-brand-dark" />
+                    <span>{resolveCityName(route.destination, 'Destination')}</span>
                   </div>
 
                   <div className="mt-3 grid grid-cols-2 gap-3 text-xs text-gray-600 bg-gray-50 p-3 rounded-xl border border-gray-100">
@@ -116,7 +117,7 @@ export default function OperatorTrips() {
                     <div>
                       <span className="text-gray-400 block font-semibold uppercase">Schedule</span>
                       <p className="font-bold text-gray-900">{trip.trip_date || 'Today'}</p>
-                      <p className="text-[11px] text-indigo-600 font-bold">{trip.departure_time || '08:00 AM'}</p>
+                      <p className="text-[11px] text-brand-dark font-bold">{trip.departure_time || '08:00 AM'}</p>
                     </div>
                   </div>
 
@@ -134,7 +135,7 @@ export default function OperatorTrips() {
                   <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden mt-1.5">
                     <div
                       style={{ width: `${Math.min(100, (confirmed / total) * 100)}%` }}
-                      className="bg-indigo-600 h-full rounded-full"
+                      className="bg-brand-accent h-full rounded-full"
                     />
                   </div>
                 </div>
@@ -142,7 +143,7 @@ export default function OperatorTrips() {
                 <div className="pt-2 border-t border-gray-100">
                   <Link
                     to={`/operator/trips/${tripId}/manifest`}
-                    className="w-full py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl text-xs flex items-center justify-center space-x-2 transition-colors border border-indigo-200"
+                    className="w-full py-2.5 bg-brand-dark hover:bg-brand-darker text-brand-accent font-bold rounded-xl text-xs flex items-center justify-center space-x-2 transition-colors border border-brand-border"
                   >
                     <FileSpreadsheet className="w-4 h-4" />
                     <span>View Passenger Manifest & Roster</span>

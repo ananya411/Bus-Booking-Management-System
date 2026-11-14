@@ -20,7 +20,19 @@ const getTripDepartureDateTime = (travelDate, departureTime) => {
 /**
  * Cancels a booking, calculates refund, releases seats, and logs audit
  */
-const cancelBooking = async (bookingId, userId, role, ip = '') => {
+const cancelBooking = async (bookingId, userOrId, roleOrReason, ip = '', reason = '') => {
+  let userId = userOrId;
+  let role = roleOrReason;
+  let cancelReason = reason;
+
+  if (typeof userOrId === 'object' && userOrId !== null) {
+    userId = userOrId._id || userOrId.id;
+    role = userOrId.role;
+    cancelReason = typeof roleOrReason === 'string' ? roleOrReason : reason;
+  }
+
+  const userIdStr = userId ? userId.toString() : '';
+
   // 1. Find booking
   const booking = await Booking.findById(bookingId).populate('trip');
   if (!booking) {
@@ -30,7 +42,7 @@ const cancelBooking = async (bookingId, userId, role, ip = '') => {
   }
 
   // 2. Check it belongs to user (or user is admin)
-  if (role !== 'admin' && booking.user.toString() !== userId.toString()) {
+  if (role !== 'admin' && booking.user.toString() !== userIdStr) {
     const error = new Error('Access denied. You can only cancel your own bookings.');
     error.statusCode = 403;
     throw error;

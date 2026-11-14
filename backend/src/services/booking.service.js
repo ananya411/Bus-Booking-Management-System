@@ -62,6 +62,14 @@ const createBooking = async (userId, tripId, passengers, boardingPointId, droppi
     existingBooking = await Booking.findOne({ pnr });
   }
 
+  const validBoardingId = (boardingPointId && mongoose.Types.ObjectId.isValid(boardingPointId))
+    ? boardingPointId
+    : (trip.boardingPoints && trip.boardingPoints[0] ? trip.boardingPoints[0].stop : null);
+
+  const validDroppingId = (droppingPointId && mongoose.Types.ObjectId.isValid(droppingPointId))
+    ? droppingPointId
+    : (trip.droppingPoints && trip.droppingPoints[0] ? trip.droppingPoints[0].stop : null);
+
   // Check if MongoDB session / transactions are supported
   let session = null;
   let useTransactions = false;
@@ -106,8 +114,8 @@ const createBooking = async (userId, tripId, passengers, boardingPointId, droppi
               totalFare,
               status: 'confirmed',
               paymentStatus: 'paid',
-              boardingPoint: boardingPointId || (trip.boardingPoints[0] ? trip.boardingPoints[0].stop : null),
-              droppingPoint: droppingPointId || (trip.droppingPoints[0] ? trip.droppingPoints[0].stop : null),
+              boardingPoint: validBoardingId,
+              droppingPoint: validDroppingId,
               bookedAt: new Date()
             }
           ],
@@ -204,8 +212,8 @@ const createBooking = async (userId, tripId, passengers, boardingPointId, droppi
         totalFare,
         status: 'confirmed',
         paymentStatus: 'paid',
-        boardingPoint: boardingPointId || (trip.boardingPoints[0] ? trip.boardingPoints[0].stop : null),
-        droppingPoint: droppingPointId || (trip.droppingPoints[0] ? trip.droppingPoints[0].stop : null),
+        boardingPoint: validBoardingId,
+        droppingPoint: validDroppingId,
         bookedAt: new Date()
       });
 

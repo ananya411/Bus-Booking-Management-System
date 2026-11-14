@@ -5,6 +5,7 @@ import ErrorMessage from '../../components/ErrorMessage';
 import SuccessMessage from '../../components/SuccessMessage';
 import StatusBadge from '../../components/StatusBadge';
 import Modal from '../../components/Modal';
+import { resolveCityName } from '../../utils/formatters';
 import { CalendarDays, Plus, Edit2, Trash2, Search, Filter, Clock, Bus, MapPin } from 'lucide-react';
 
 export default function TripManagement() {
@@ -78,8 +79,8 @@ export default function TripManagement() {
     setIsEditing(false);
     setCurrentTripId(null);
     setFormData({
-      bus_id: buses[0]?.id || buses[0]?.bus_id || '',
-      route_id: routes[0]?.id || routes[0]?.route_id || '',
+      bus_id: buses[0]?._id || buses[0]?.id || buses[0]?.bus_id || '',
+      route_id: routes[0]?._id || routes[0]?.id || routes[0]?.route_id || '',
       trip_date: new Date().toISOString().split('T')[0],
       departure_time: '08:00',
       arrival_time: '14:00',
@@ -91,11 +92,13 @@ export default function TripManagement() {
 
   const handleOpenEdit = (trip) => {
     setIsEditing(true);
-    setCurrentTripId(trip.id || trip.trip_id);
+    setCurrentTripId(trip._id || trip.id || trip.trip_id);
+    const bus = trip.Bus || trip.bus || {};
+    const route = trip.Route || trip.route || {};
     setFormData({
-      bus_id: trip.bus_id || trip.Bus?.id || trip.bus?.id || '',
-      route_id: trip.route_id || trip.Route?.id || trip.route?.id || '',
-      trip_date: trip.trip_date || trip.date || '',
+      bus_id: trip.bus_id || bus._id || bus.id || '',
+      route_id: trip.route_id || route._id || route.id || '',
+      trip_date: trip.trip_date || trip.travelDate || trip.date || '',
       departure_time: trip.departure_time || '08:00',
       arrival_time: trip.arrival_time || '14:00',
       fare: trip.fare || trip.base_fare || 500,
@@ -139,7 +142,7 @@ export default function TripManagement() {
     if (!tripToDelete) return;
     setDeleting(true);
     try {
-      const id = tripToDelete.id || tripToDelete.trip_id;
+      const id = tripToDelete._id || tripToDelete.id || tripToDelete.trip_id;
       await tripApi.deleteTrip(id);
       setSuccess('Trip cancelled/deleted successfully!');
       setDeleteModalOpen(false);
@@ -153,12 +156,15 @@ export default function TripManagement() {
   };
 
   const filteredTrips = trips.filter((t) => {
-    if (dateFilter && (t.trip_date || t.date) !== dateFilter) return false;
+    const tripDate = t.trip_date || t.travelDate || t.date;
+    if (dateFilter && tripDate !== dateFilter) return false;
     if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      const busName = (t.Bus?.name || t.bus?.name || '').toLowerCase();
-      const src = (t.Route?.source || t.route?.source || '').toLowerCase();
-      const dst = (t.Route?.destination || t.route?.destination || '').toLowerCase();
+      const q = searchQuery.trim().toLowerCase();
+      const bus = t.Bus || t.bus || {};
+      const route = t.Route || t.route || {};
+      const busName = String(bus.name || bus.bus_name || bus.busNumber || '').toLowerCase();
+      const src = resolveCityName(route.source).toLowerCase();
+      const dst = resolveCityName(route.destination).toLowerCase();
       if (!busName.includes(q) && !src.includes(q) && !dst.includes(q)) return false;
     }
     return true;
@@ -174,7 +180,7 @@ export default function TripManagement() {
 
         <button
           onClick={handleOpenAdd}
-          className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-xl shadow-md shadow-indigo-600/30 flex items-center space-x-2 transition-all"
+          className="px-4 py-2.5 bg-brand-accent hover:bg-brand-accent-hover text-brand-dark font-extrabold text-sm rounded-xl shadow-md shadow-brand-accent/20 flex items-center space-x-2 transition-all"
         >
           <Plus className="w-4 h-4" />
           <span>Schedule New Trip</span>
@@ -203,12 +209,12 @@ export default function TripManagement() {
             type="date"
             value={dateFilter}
             onChange={(e) => setDateFilter(e.target.value)}
-            className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
+            className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-brand-accent"
           />
           {dateFilter && (
             <button
               onClick={() => setDateFilter('')}
-              className="text-xs text-indigo-600 hover:text-indigo-800 font-semibold"
+              className="text-xs text-brand-dark hover:text-black font-bold"
             >
               Clear
             </button>
@@ -243,19 +249,20 @@ export default function TripManagement() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {filteredTrips.map((trip) => {
+                {filteredTrips.map((trip, tIdx) => {
+                  const tripId = trip._id || trip.id || trip.trip_id || `trip-${tIdx}`;
                   const bus = trip.Bus || trip.bus || {};
                   const route = trip.Route || trip.route || {};
                   const available = trip.available_seats ?? trip.availableSeats ?? bus.total_seats ?? 36;
 
                   return (
-                    <tr key={trip.id || trip.trip_id} className="hover:bg-gray-50/50">
+                    <tr key={tripId} className="hover:bg-gray-50/50">
                       <td className="py-3.5 px-4">
                         <p className="font-bold text-gray-900">{bus.name || 'Express Line'}</p>
                         <p className="text-[11px] text-gray-500">{bus.bus_number} • {bus.bus_type}</p>
                       </td>
-                      <td className="py-3.5 px-4 font-semibold text-indigo-700">
-                        {route.source || 'Origin'} → {route.destination || 'Destination'}
+                      <td className="py-3.5 px-4 font-semibold text-brand-dark">
+                        {resolveCityName(route.source, 'Origin')} → {resolveCityName(route.destination, 'Destination')}
                       </td>
                       <td className="py-3.5 px-4 text-gray-700 font-medium">
                         {trip.trip_date || trip.date || 'Today'}
@@ -275,7 +282,7 @@ export default function TripManagement() {
                       <td className="py-3.5 px-4 text-right space-x-2">
                         <button
                           onClick={() => handleOpenEdit(trip)}
-                          className="p-1.5 rounded-lg text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                          className="p-1.5 rounded-lg text-gray-500 hover:text-brand-dark hover:bg-brand-accent/20 transition-colors"
                           title="Edit Trip"
                         >
                           <Edit2 className="w-4 h-4" />
@@ -312,11 +319,11 @@ export default function TripManagement() {
               required
               value={formData.bus_id}
               onChange={(e) => setFormData({ ...formData, bus_id: e.target.value })}
-              className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-brand-accent"
             >
               <option value="">-- Choose a Bus --</option>
-              {buses.map((b) => (
-                <option key={b.id || b.bus_id} value={b.id || b.bus_id}>
+              {buses.map((b, idx) => (
+                <option key={b._id || b.id || b.bus_id || `bus-${idx}`} value={b._id || b.id || b.bus_id}>
                   {b.bus_number} — {b.name || 'Express'} ({b.bus_type || 'AC'}, {b.total_seats || 36} seats)
                 </option>
               ))}
@@ -331,12 +338,12 @@ export default function TripManagement() {
               required
               value={formData.route_id}
               onChange={(e) => setFormData({ ...formData, route_id: e.target.value })}
-              className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-brand-accent"
             >
               <option value="">-- Choose a Route --</option>
-              {routes.map((r) => (
-                <option key={r.id || r.route_id} value={r.id || r.route_id}>
-                  {r.source} → {r.destination} {r.distance ? `(${r.distance} km)` : ''}
+              {routes.map((r, idx) => (
+                <option key={r._id || r.id || r.route_id || `route-${idx}`} value={r._id || r.id || r.route_id}>
+                  {resolveCityName(r.source)} → {resolveCityName(r.destination)} {r.distance ? `(${r.distance} km)` : ''}
                 </option>
               ))}
             </select>
@@ -352,7 +359,7 @@ export default function TripManagement() {
                 required
                 value={formData.trip_date}
                 onChange={(e) => setFormData({ ...formData, trip_date: e.target.value })}
-                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-brand-accent"
               />
             </div>
 
@@ -366,7 +373,7 @@ export default function TripManagement() {
                 required
                 value={formData.fare}
                 onChange={(e) => setFormData({ ...formData, fare: e.target.value })}
-                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-brand-accent"
               />
             </div>
           </div>
@@ -381,7 +388,7 @@ export default function TripManagement() {
                 required
                 value={formData.departure_time}
                 onChange={(e) => setFormData({ ...formData, departure_time: e.target.value })}
-                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-brand-accent"
               />
             </div>
 
@@ -394,7 +401,7 @@ export default function TripManagement() {
                 required
                 value={formData.arrival_time}
                 onChange={(e) => setFormData({ ...formData, arrival_time: e.target.value })}
-                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-brand-accent"
               />
             </div>
           </div>
@@ -406,7 +413,7 @@ export default function TripManagement() {
             <select
               value={formData.status}
               onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-              className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-brand-accent"
             >
               <option value="scheduled">Scheduled</option>
               <option value="in_transit">In Transit / Running</option>
@@ -426,7 +433,7 @@ export default function TripManagement() {
             <button
               type="submit"
               disabled={saving}
-              className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl disabled:opacity-60 shadow-sm"
+              className="px-5 py-2 bg-brand-accent hover:bg-brand-accent-hover text-brand-dark font-extrabold text-sm rounded-xl disabled:opacity-60 shadow-sm"
             >
               {saving ? 'Saving...' : isEditing ? 'Save Changes' : 'Schedule Trip'}
             </button>

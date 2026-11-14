@@ -134,7 +134,7 @@ router.get('/:id', tripController.getTripById);
 router.post(
   '/',
   authenticate,
-  authorize('admin'),
+  authorize('operator', 'admin'),
   createTripValidator,
   validate,
   auditLogger('CREATE_TRIP', 'Trip'),
@@ -145,7 +145,7 @@ router.post(
  * @swagger
  * /api/trips/{id}:
  *   put:
- *     summary: Update a trip schedule (Admin only)
+ *     summary: Update a trip schedule (Operator or Admin)
  *     tags: [Trips]
  *     security:
  *       - bearerAuth: []
@@ -159,12 +159,12 @@ router.post(
  *       200:
  *         description: Trip updated successfully
  *       403:
- *         description: Forbidden - Admin only
+ *         description: Forbidden - Operator or Admin only
  */
 router.put(
   '/:id',
   authenticate,
-  authorize('admin'),
+  authorize('operator', 'admin'),
   updateTripValidator,
   validate,
   auditLogger('UPDATE_TRIP', 'Trip'),
@@ -175,7 +175,7 @@ router.put(
  * @swagger
  * /api/trips/{id}:
  *   delete:
- *     summary: Delete a trip (Admin only)
+ *     summary: Delete a trip (Operator or Admin)
  *     tags: [Trips]
  *     security:
  *       - bearerAuth: []
@@ -189,12 +189,12 @@ router.put(
  *       200:
  *         description: Trip deleted successfully
  *       403:
- *         description: Forbidden - Admin only
+ *         description: Forbidden - Operator or Admin only
  */
 router.delete(
   '/:id',
   authenticate,
-  authorize('admin'),
+  authorize('operator', 'admin'),
   auditLogger('DELETE_TRIP', 'Trip'),
   tripController.deleteTrip
 );

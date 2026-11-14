@@ -129,7 +129,7 @@ export default function SeatSelectionPage() {
         {/* Back Link */}
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center text-sm font-semibold text-gray-600 hover:text-indigo-600 transition-colors"
+          className="flex items-center text-sm font-semibold text-gray-600 hover:text-brand-dark transition-colors"
         >
           <ChevronLeft className="w-4 h-4 mr-1" />
           Back to Trip Details
@@ -140,8 +140,8 @@ export default function SeatSelectionPage() {
         {/* Header Summary */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <div className="flex items-center space-x-2 text-indigo-600 font-bold text-xs uppercase tracking-wider mb-1">
-              <Bus className="w-4 h-4" />
+            <div className="flex items-center space-x-2 text-brand-dark font-bold text-xs uppercase tracking-wider mb-1">
+              <Bus className="w-4 h-4 text-brand-accent" />
               <span>{trip?.Bus?.bus_type || trip?.bus_type || 'Luxury Bus'}</span>
             </div>
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
@@ -159,8 +159,8 @@ export default function SeatSelectionPage() {
               <span className="text-gray-600">Available</span>
             </div>
             <div className="flex items-center space-x-2">
-              <div className="w-5 h-5 rounded-md bg-indigo-600 border border-indigo-700" />
-              <span className="text-gray-600">Selected</span>
+              <div className="w-5 h-5 rounded-md bg-brand-accent border border-brand-accent-hover" />
+              <span className="text-gray-900 font-bold">Selected</span>
             </div>
             <div className="flex items-center space-x-2">
               <div className="w-5 h-5 rounded-md bg-red-100 border border-red-300" />
@@ -251,7 +251,7 @@ export default function SeatSelectionPage() {
                   {selectedSeats.map((seatNum) => (
                     <span
                       key={seatNum}
-                      className="inline-flex items-center px-3 py-1 bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold rounded-lg"
+                      className="inline-flex items-center px-3 py-1 bg-brand-accent/20 border border-brand-accent/50 text-brand-dark text-xs font-bold rounded-lg"
                     >
                       Seat {seatNum}
                     </span>
@@ -277,7 +277,7 @@ export default function SeatSelectionPage() {
 
               <div className="border-t border-dashed border-gray-200 pt-3 flex justify-between items-center text-sm">
                 <span className="font-bold text-gray-900">Total Amount</span>
-                <span className="text-xl font-black text-indigo-600">₹{totalFare}</span>
+                <span className="text-xl font-black text-brand-dark">₹{totalFare}</span>
               </div>
             </div>
 
@@ -285,7 +285,7 @@ export default function SeatSelectionPage() {
             <button
               onClick={handleContinue}
               disabled={selectedSeats.length === 0}
-              className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-md shadow-indigo-600/30 flex items-center justify-center space-x-2 transition-all transform active:scale-95"
+              className="w-full py-3.5 bg-brand-accent hover:bg-brand-accent-hover disabled:opacity-50 disabled:cursor-not-allowed text-brand-dark font-extrabold rounded-xl shadow-lg shadow-brand-accent/25 flex items-center justify-center space-x-2 transition-all transform active:scale-95"
             >
               <span>Continue to Passenger Details</span>
               <ArrowRight className="w-4 h-4" />
@@ -324,10 +324,10 @@ export default function SeatSelectionPage() {
           type="button"
           onClick={() => toggleSeat(seat)}
           title={`Seat ${seatNumber} selected. Click to remove.`}
-          className={`${baseClasses} bg-indigo-600 text-white border-2 border-indigo-700 shadow-md transform scale-105`}
+          className={`${baseClasses} bg-brand-accent text-brand-dark border-2 border-brand-accent-hover shadow-md shadow-brand-accent/30 font-black transform scale-105`}
         >
           <span>{seatNumber}</span>
-          <Check className="w-3 h-3 text-white" />
+          <Check className="w-3.5 h-3.5 text-brand-dark stroke-[3]" />
         </button>
       );
     }
@@ -338,7 +338,7 @@ export default function SeatSelectionPage() {
         type="button"
         onClick={() => toggleSeat(seat)}
         title={`Seat ${seatNumber} available. Click to select.`}
-        className={`${baseClasses} bg-white text-gray-700 border-2 border-gray-300 hover:border-indigo-500 hover:bg-indigo-50 hover:text-indigo-700 shadow-sm`}
+        className={`${baseClasses} bg-white text-gray-700 border-2 border-gray-300 hover:border-brand-accent hover:bg-brand-accent/10 hover:text-brand-dark shadow-sm`}
       >
         <span>{seatNumber}</span>
       </button>

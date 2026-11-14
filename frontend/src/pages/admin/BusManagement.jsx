@@ -142,7 +142,7 @@ export default function BusManagement() {
 
         <button
           onClick={handleOpenAdd}
-          className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-xl shadow-md shadow-indigo-600/30 flex items-center space-x-2 transition-all"
+          className="px-4 py-2.5 bg-brand-accent hover:bg-brand-accent-hover text-brand-dark font-extrabold text-sm rounded-xl shadow-md shadow-brand-accent/20 flex items-center space-x-2 transition-all"
         >
           <Plus className="w-4 h-4" />
           <span>Add New Bus</span>
@@ -190,8 +190,8 @@ export default function BusManagement() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {filteredBuses.map((bus) => (
-                  <tr key={bus.id || bus.bus_id} className="hover:bg-gray-50/50">
+                {filteredBuses.map((bus, bIdx) => (
+                  <tr key={bus._id || bus.id || bus.bus_id || `bus-${bIdx}`} className="hover:bg-gray-50/50">
                     <td className="py-3.5 px-4 font-mono font-bold text-gray-900">
                       {bus.bus_number}
                     </td>
@@ -203,11 +203,11 @@ export default function BusManagement() {
                         {bus.bus_type || 'AC Seater'}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 font-bold text-indigo-600">
+                    <td className="py-3.5 px-4 font-bold text-brand-dark">
                       {bus.total_seats || 36} seats
                     </td>
                     <td className="py-3.5 px-4 text-gray-600">
-                      {bus.operator?.name || bus.operator_name || 'System Managed'}
+                      {bus.operator?.name || bus.operator_name || (typeof bus.operator === 'string' ? bus.operator : 'System Managed')}
                     </td>
                     <td className="py-3.5 px-4">
                       <StatusBadge status={bus.status || 'ACTIVE'} />
@@ -215,7 +215,7 @@ export default function BusManagement() {
                     <td className="py-3.5 px-4 text-right space-x-2">
                       <button
                         onClick={() => handleOpenEdit(bus)}
-                        className="p-1.5 rounded-lg text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                        className="p-1.5 rounded-lg text-gray-500 hover:text-brand-dark hover:bg-brand-accent/20 transition-colors"
                         title="Edit Bus"
                       >
                         <Edit2 className="w-4 h-4" />
@@ -253,7 +253,7 @@ export default function BusManagement() {
               value={formData.bus_number}
               onChange={(e) => setFormData({ ...formData, bus_number: e.target.value })}
               placeholder="e.g. MH-12-AB-9876"
-              className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-brand-accent"
             />
           </div>
 
@@ -267,7 +267,7 @@ export default function BusManagement() {
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="e.g. Royal Travels Scania Multi-Axle"
-              className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-brand-accent"
             />
           </div>
 
@@ -279,7 +279,7 @@ export default function BusManagement() {
               <select
                 value={formData.bus_type}
                 onChange={(e) => setFormData({ ...formData, bus_type: e.target.value })}
-                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-brand-accent"
               >
                 <option value="AC Sleeper (2+1)">AC Sleeper (2+1)</option>
                 <option value="AC Semi-Sleeper (2+2)">AC Semi-Sleeper (2+2)</option>
@@ -300,7 +300,7 @@ export default function BusManagement() {
                 required
                 value={formData.total_seats}
                 onChange={(e) => setFormData({ ...formData, total_seats: parseInt(e.target.value, 10) })}
-                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-brand-accent"
               />
             </div>
           </div>
@@ -314,7 +314,7 @@ export default function BusManagement() {
               value={formData.operator_name}
               onChange={(e) => setFormData({ ...formData, operator_name: e.target.value })}
               placeholder="e.g. GreenLine Express"
-              className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-brand-accent"
             />
           </div>
 
@@ -325,7 +325,7 @@ export default function BusManagement() {
             <select
               value={formData.status}
               onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-              className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-brand-accent"
             >
               <option value="active">Active (Available for trips)</option>
               <option value="inactive">Inactive / In Maintenance</option>
@@ -343,7 +343,7 @@ export default function BusManagement() {
             <button
               type="submit"
               disabled={saving}
-              className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl disabled:opacity-60 shadow-sm"
+              className="px-5 py-2 bg-brand-accent hover:bg-brand-accent-hover text-brand-dark font-extrabold text-sm rounded-xl disabled:opacity-60 shadow-sm"
             >
               {saving ? 'Saving...' : isEditing ? 'Save Changes' : 'Create Bus'}
             </button>

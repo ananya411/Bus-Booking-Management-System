@@ -3,6 +3,7 @@ import { reportApi, bookingApi } from '../../services/api';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import ErrorMessage from '../../components/ErrorMessage';
 import StatusBadge from '../../components/StatusBadge';
+import { resolveCityName } from '../../utils/formatters';
 import { 
   Bus, Route as RouteIcon, CalendarDays, Ticket, 
   IndianRupee, Percent, TrendingUp, ArrowUpRight, CheckCircle2 
@@ -74,43 +75,43 @@ export default function AdminDashboard() {
   const statCards = [
     {
       title: 'Total Buses',
-      value: stats?.total_buses ?? stats?.buses ?? 0,
-      icon: <Bus className="w-5 h-5 text-indigo-600" />,
-      bg: 'bg-indigo-50',
+      value: stats?.totalBuses ?? stats?.total_buses ?? stats?.buses ?? 0,
+      icon: <Bus className="w-5 h-5 text-brand-dark" />,
+      bg: 'bg-brand-accent/20',
     },
     {
       title: 'Active Routes',
-      value: stats?.total_routes ?? stats?.routes ?? 0,
+      value: stats?.totalRoutes ?? stats?.total_routes ?? stats?.routes ?? 0,
       icon: <RouteIcon className="w-5 h-5 text-blue-600" />,
       bg: 'bg-blue-50',
     },
     {
       title: 'Scheduled Trips',
-      value: stats?.total_trips ?? stats?.trips ?? 0,
+      value: stats?.totalTrips ?? stats?.total_trips ?? stats?.trips ?? 0,
       icon: <CalendarDays className="w-5 h-5 text-violet-600" />,
       bg: 'bg-violet-50',
     },
     {
       title: 'Total Bookings',
-      value: stats?.total_bookings ?? stats?.bookings ?? 0,
+      value: stats?.totalBookings ?? stats?.total_bookings ?? stats?.bookings ?? 0,
       icon: <Ticket className="w-5 h-5 text-emerald-600" />,
       bg: 'bg-emerald-50',
     },
     {
       title: 'Gross Revenue',
-      value: `₹${Number(stats?.total_revenue ?? stats?.revenue ?? 0).toLocaleString()}`,
+      value: `₹${Number(stats?.totalRevenue ?? stats?.total_revenue ?? stats?.revenue ?? 0).toLocaleString()}`,
       icon: <IndianRupee className="w-5 h-5 text-amber-600" />,
       bg: 'bg-amber-50',
     },
     {
       title: 'Fleet Occupancy',
-      value: `${stats?.occupancy_rate ?? stats?.occupancy ?? 76}%`,
+      value: `${stats?.occupancyRate ?? stats?.occupancy_rate ?? stats?.occupancy ?? 78.4}%`,
       icon: <Percent className="w-5 h-5 text-teal-600" />,
       bg: 'bg-teal-50',
     },
   ];
 
-  const trendData = stats?.daily_trend || [
+  const trendData = stats?.dailyTrend || stats?.daily_trend || [
     { day: 'Mon', bookings: 42 },
     { day: 'Tue', bookings: 56 },
     { day: 'Wed', bookings: 48 },
@@ -157,7 +158,7 @@ export default function AdminDashboard() {
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-base font-bold text-gray-900 flex items-center space-x-2">
-              <TrendingUp className="w-5 h-5 text-indigo-600" />
+              <TrendingUp className="w-5 h-5 text-brand-dark" />
               <span>Weekly Booking Trends</span>
             </h3>
             <p className="text-xs text-gray-500 mt-0.5">Tickets booked over the last 7 calendar days</p>
@@ -171,12 +172,12 @@ export default function AdminDashboard() {
               const heightPercent = Math.max(15, Math.round((item.bookings / maxBookings) * 100));
               return (
                 <div key={idx} className="flex flex-col items-center h-full justify-end group">
-                  <span className="text-[11px] font-bold text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity mb-1">
+                  <span className="text-[11px] font-bold text-brand-dark opacity-0 group-hover:opacity-100 transition-opacity mb-1">
                     {item.bookings}
                   </span>
                   <div
                     style={{ height: `${heightPercent}%` }}
-                    className="w-full max-w-[48px] bg-indigo-500 hover:bg-indigo-600 rounded-t-xl transition-all duration-300 relative shadow-sm"
+                    className="w-full max-w-[48px] bg-brand-accent hover:bg-brand-accent-hover rounded-t-xl transition-all duration-300 relative shadow-sm"
                   />
                   <span className="text-xs font-semibold text-gray-500 mt-2">{item.day}</span>
                 </div>
@@ -192,7 +193,7 @@ export default function AdminDashboard() {
           <h3 className="text-base font-bold text-gray-900">Recent Passenger Bookings</h3>
           <Link
             to="/admin/bookings"
-            className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center"
+            className="text-xs font-semibold text-brand-dark hover:text-black flex items-center"
           >
             <span>View all</span>
             <ArrowUpRight className="w-3.5 h-3.5 ml-1" />
@@ -213,28 +214,40 @@ export default function AdminDashboard() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {recentBookings.length > 0 ? (
-                recentBookings.map((b) => (
-                  <tr key={b.id || b.booking_id} className="hover:bg-gray-50/50">
-                    <td className="py-3 px-4 font-mono font-bold text-indigo-600">
-                      {b.pnr || b.PNR || `BM-${b.id}`}
-                    </td>
-                    <td className="py-3 px-4 font-semibold text-gray-900">
-                      {b.user?.name || b.contact_email || 'Passenger'}
-                    </td>
-                    <td className="py-3 px-4 text-gray-600">
-                      {b.trip?.route?.source || b.trip?.Route?.source || 'Origin'} → {b.trip?.route?.destination || b.trip?.Route?.destination || 'Dest'}
-                    </td>
-                    <td className="py-3 px-4 font-bold text-gray-700">
-                      {b.passengers?.map((p) => p.seat_number).join(', ') || b.seat_numbers?.join(', ') || '1'}
-                    </td>
-                    <td className="py-3 px-4 font-black text-gray-900">
-                      ₹{b.total_fare || b.fare_amount || 0}
-                    </td>
-                    <td className="py-3 px-4">
-                      <StatusBadge status={b.status || 'CONFIRMED'} />
-                    </td>
-                  </tr>
-                ))
+                recentBookings.map((b, idx) => {
+                  const bookingId = b._id || b.id || b.booking_id || `booking-${idx}`;
+                  const pnr = b.pnr || b.PNR || (b._id ? `BM-${String(b._id).slice(-6).toUpperCase()}` : `BM-${idx + 1}`);
+                  const trip = b.trip || b.Trip || {};
+                  const route = trip.route || trip.Route || b.route || b.Route || {};
+                  const passengers = b.passengers || b.Passengers || [];
+                  const userDisplay = (typeof b.user === 'object' && b.user !== null ? (b.user.name || b.user.email) : null) || b.contact_name || b.contact_email || 'Passenger';
+                  const seatsDisplay = Array.isArray(passengers) && passengers.length > 0
+                    ? passengers.map((p) => (typeof p === 'object' ? (p.seat_number || p.seatNumber) : p)).filter(Boolean).join(', ')
+                    : (Array.isArray(b.seat_numbers) ? b.seat_numbers.join(', ') : (b.seats ? (Array.isArray(b.seats) ? b.seats.join(', ') : String(b.seats)) : '1'));
+
+                  return (
+                    <tr key={bookingId} className="hover:bg-gray-50/50">
+                      <td className="py-3 px-4 font-mono font-bold text-brand-dark">
+                        {pnr}
+                      </td>
+                      <td className="py-3 px-4 font-semibold text-gray-900">
+                        {userDisplay}
+                      </td>
+                      <td className="py-3 px-4 text-gray-600 font-medium">
+                        {resolveCityName(route.source, 'Origin')} → {resolveCityName(route.destination, 'Destination')}
+                      </td>
+                      <td className="py-3 px-4 font-bold text-gray-700">
+                        {seatsDisplay}
+                      </td>
+                      <td className="py-3 px-4 font-black text-gray-900">
+                        ₹{b.total_fare || b.totalFare || b.fare_amount || 0}
+                      </td>
+                      <td className="py-3 px-4">
+                        <StatusBadge status={b.status || 'CONFIRMED'} />
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
                   <td colSpan="6" className="py-6 text-center text-gray-400">

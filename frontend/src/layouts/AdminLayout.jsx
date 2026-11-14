@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Logo from '../components/Logo';
 import { 
   Bus, LayoutDashboard, Route as RouteIcon, CalendarDays, 
-  Ticket, Users, FileText, LogOut, Menu, X, ArrowLeft, Shield 
+  Ticket, Users, FileText, LogOut, Menu, X, ArrowLeft, Shield, MapPin 
 } from 'lucide-react';
 
 export default function AdminLayout() {
@@ -15,6 +16,7 @@ export default function AdminLayout() {
     { name: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
     { name: 'Buses', path: '/admin/buses', icon: <Bus className="w-5 h-5" /> },
     { name: 'Routes', path: '/admin/routes', icon: <RouteIcon className="w-5 h-5" /> },
+    { name: 'Stops', path: '/admin/stops', icon: <MapPin className="w-5 h-5" /> },
     { name: 'Trips', path: '/admin/trips', icon: <CalendarDays className="w-5 h-5" /> },
     { name: 'Bookings', path: '/admin/bookings', icon: <Ticket className="w-5 h-5" /> },
     { name: 'Users', path: '/admin/users', icon: <Users className="w-5 h-5" /> },
@@ -38,18 +40,15 @@ export default function AdminLayout() {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-gray-900 text-gray-300 flex flex-col justify-between transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-brand-darker border-r border-gray-800 text-gray-300 flex flex-col justify-between transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <div>
           {/* Logo & Brand */}
-          <div className="h-16 flex items-center justify-between px-6 border-b border-gray-800">
-            <Link to="/" className="flex items-center space-x-2 text-white">
-              <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold">
-                <Bus className="w-5 h-5" />
-              </div>
-              <span className="text-lg font-bold">BusMitra Admin</span>
+          <div className="h-16 flex items-center justify-between px-5 border-b border-gray-800">
+            <Link to="/" className="flex items-center group">
+              <Logo className="h-9 w-auto" />
             </Link>
             <button
               onClick={() => setSidebarOpen(false)}
@@ -69,7 +68,7 @@ export default function AdminLayout() {
                 className={({ isActive }) =>
                   `flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
                     isActive
-                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                      ? 'bg-brand-accent text-brand-dark shadow-md shadow-brand-accent/30 font-bold'
                       : 'text-gray-400 hover:bg-gray-800 hover:text-white'
                   }`
                 }
@@ -93,7 +92,7 @@ export default function AdminLayout() {
 
           <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-gray-800/80">
             <div className="flex items-center space-x-2.5 overflow-hidden">
-              <div className="w-8 h-8 rounded-full bg-indigo-500 text-white flex items-center justify-center font-bold text-xs uppercase shrink-0">
+              <div className="w-8 h-8 rounded-full bg-brand-accent text-brand-dark flex items-center justify-center font-black text-xs uppercase shrink-0">
                 {user?.name ? user.name[0] : 'A'}
               </div>
               <div className="truncate text-xs">

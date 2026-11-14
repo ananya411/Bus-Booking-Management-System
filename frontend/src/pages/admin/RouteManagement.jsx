@@ -4,6 +4,7 @@ import LoadingSpinner from '../../components/LoadingSpinner';
 import ErrorMessage from '../../components/ErrorMessage';
 import SuccessMessage from '../../components/SuccessMessage';
 import Modal from '../../components/Modal';
+import { resolveCityName } from '../../utils/formatters';
 import { Route as RouteIcon, Plus, Edit2, Trash2, Search, ArrowRight } from 'lucide-react';
 
 export default function RouteManagement() {
@@ -66,11 +67,11 @@ export default function RouteManagement() {
 
   const handleOpenEdit = (route) => {
     setIsEditing(true);
-    setCurrentRouteId(route.id || route.route_id);
+    setCurrentRouteId(route._id || route.id || route.route_id);
     setFormData({
       name: route.name || '',
-      source: route.source || '',
-      destination: route.destination || '',
+      source: resolveCityName(route.source),
+      destination: resolveCityName(route.destination),
       distance: route.distance || '',
       duration: route.duration || '',
     });
@@ -113,7 +114,7 @@ export default function RouteManagement() {
     if (!routeToDelete) return;
     setDeleting(true);
     try {
-      const id = routeToDelete.id || routeToDelete.route_id;
+      const id = routeToDelete._id || routeToDelete.id || routeToDelete.route_id;
       await routeApi.deleteRoute(id);
       setSuccess('Route deleted successfully!');
       setDeleteModalOpen(false);
@@ -127,10 +128,11 @@ export default function RouteManagement() {
   };
 
   const filteredRoutes = routes.filter((r) => {
-    const q = searchQuery.toLowerCase();
-    const name = (r.name || '').toLowerCase();
-    const src = (r.source || '').toLowerCase();
-    const dst = (r.destination || '').toLowerCase();
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return true;
+    const name = String(r.name || '').toLowerCase();
+    const src = resolveCityName(r.source).toLowerCase();
+    const dst = resolveCityName(r.destination).toLowerCase();
     return name.includes(q) || src.includes(q) || dst.includes(q);
   });
 
@@ -144,7 +146,7 @@ export default function RouteManagement() {
 
         <button
           onClick={handleOpenAdd}
-          className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-xl shadow-md shadow-indigo-600/30 flex items-center space-x-2 transition-all"
+          className="px-4 py-2.5 bg-brand-accent hover:bg-brand-accent-hover text-brand-dark font-extrabold text-sm rounded-xl shadow-md shadow-brand-accent/20 flex items-center space-x-2 transition-all"
         >
           <Plus className="w-4 h-4" />
           <span>Add New Route</span>
@@ -191,16 +193,16 @@ export default function RouteManagement() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {filteredRoutes.map((route) => (
-                  <tr key={route.id || route.route_id} className="hover:bg-gray-50/50">
+                {filteredRoutes.map((route, rIdx) => (
+                  <tr key={route._id || route.id || route.route_id || `route-${rIdx}`} className="hover:bg-gray-50/50">
                     <td className="py-3.5 px-4 font-bold text-gray-900">
-                      {route.name || `${route.source} → ${route.destination}`}
+                      {route.name || `${resolveCityName(route.source)} → ${resolveCityName(route.destination)}`}
                     </td>
-                    <td className="py-3.5 px-4 font-semibold text-indigo-700">
-                      {route.source}
+                    <td className="py-3.5 px-4 font-semibold text-brand-dark">
+                      {resolveCityName(route.source)}
                     </td>
-                    <td className="py-3.5 px-4 font-semibold text-indigo-700">
-                      {route.destination}
+                    <td className="py-3.5 px-4 font-semibold text-brand-dark">
+                      {resolveCityName(route.destination)}
                     </td>
                     <td className="py-3.5 px-4 text-gray-600 font-medium">
                       {route.distance ? `${route.distance} km` : '—'}
@@ -211,7 +213,7 @@ export default function RouteManagement() {
                     <td className="py-3.5 px-4 text-right space-x-2">
                       <button
                         onClick={() => handleOpenEdit(route)}
-                        className="p-1.5 rounded-lg text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                        className="p-1.5 rounded-lg text-gray-500 hover:text-brand-dark hover:bg-brand-accent/20 transition-colors"
                         title="Edit Route"
                       >
                         <Edit2 className="w-4 h-4" />
@@ -248,7 +250,7 @@ export default function RouteManagement() {
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="e.g. Mumbai - Pune Expressway Direct"
-              className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-brand-accent"
             />
           </div>
 
@@ -263,7 +265,7 @@ export default function RouteManagement() {
                 value={formData.source}
                 onChange={(e) => setFormData({ ...formData, source: e.target.value })}
                 placeholder="e.g. Mumbai"
-                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-brand-accent"
               />
             </div>
 
@@ -277,7 +279,7 @@ export default function RouteManagement() {
                 value={formData.destination}
                 onChange={(e) => setFormData({ ...formData, destination: e.target.value })}
                 placeholder="e.g. Pune"
-                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-brand-accent"
               />
             </div>
           </div>
@@ -292,7 +294,7 @@ export default function RouteManagement() {
                 value={formData.distance}
                 onChange={(e) => setFormData({ ...formData, distance: e.target.value })}
                 placeholder="e.g. 150"
-                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-brand-accent"
               />
             </div>
 
@@ -305,7 +307,7 @@ export default function RouteManagement() {
                 value={formData.duration}
                 onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
                 placeholder="e.g. 3h 30m"
-                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-brand-accent"
               />
             </div>
           </div>
@@ -321,7 +323,7 @@ export default function RouteManagement() {
             <button
               type="submit"
               disabled={saving}
-              className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl disabled:opacity-60 shadow-sm"
+              className="px-5 py-2 bg-brand-accent hover:bg-brand-accent-hover text-brand-dark font-extrabold text-sm rounded-xl disabled:opacity-60 shadow-sm"
             >
               {saving ? 'Saving...' : isEditing ? 'Save Changes' : 'Create Route'}
             </button>

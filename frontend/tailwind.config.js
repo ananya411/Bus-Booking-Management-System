@@ -7,48 +7,32 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Open Sans', 'Helvetica Neue', 'sans-serif'],
+        sans: [
+          'Inter',
+          'system-ui',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          'Segoe UI',
+          'Roboto',
+          'sans-serif',
+        ],
       },
       colors: {
-        forest: {
-          50:  '#f0f5ef',
-          100: '#d6e8d3',
-          200: '#afd1a9',
-          300: '#7db575',
-          400: '#52964a',
-          500: '#2d6b27',
-          600: '#1e5219',
-          700: '#163d12',
-          800: '#0f2a0c',
-          900: '#081a07',
-          950: '#040e04',
-        },
-        beige: {
-          50:  '#faf7f0',
-          100: '#f5f0e8',
-          200: '#ede4d0',
-          300: '#e0d3b5',
-          400: '#d0bf97',
-          500: '#bda87a',
-          600: '#a08c5b',
-          700: '#7d6c42',
-          800: '#5a4d2e',
-          900: '#382f1b',
-        },
-        primary: {
-          50:  '#f0f5ef',
-          100: '#d6e8d3',
-          200: '#afd1a9',
-          300: '#7db575',
-          400: '#52964a',
-          500: '#2d6b27',
-          600: '#1e5219',
-          700: '#163d12',
-          800: '#0f2a0c',
-          900: '#081a07',
-        }
-      }
+        'brand-dark': '#061D15',
+        'brand-darker': '#011810',
+        'brand-dark-card': '#0A261D',
+        'brand-accent': '#6DCE05',
+        'brand-accent-hover': '#5BB503',
+        'brand-accent-light': '#9DEE09',
+        'brand-gray': '#F5FAF6',
+        'brand-border': '#14382B',
+      },
+      boxShadow: {
+        'nav': '0 4px 20px -2px rgba(1, 24, 16, 0.45)',
+        'dropdown': '0 10px 25px -5px rgba(1, 24, 16, 0.6), 0 8px 10px -6px rgba(1, 24, 16, 0.5)',
+        'glow': '0 0 25px -5px rgba(109, 206, 5, 0.35)',
+      },
     },
   },
   plugins: [],
-}
+};

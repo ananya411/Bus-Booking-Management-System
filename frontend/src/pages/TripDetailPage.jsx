@@ -46,7 +46,7 @@ export default function TripDetailPage() {
       <div className="max-w-4xl mx-auto py-16 px-4">
         <ErrorMessage message={error || 'Trip not found'} />
         <div className="mt-4">
-          <Link to="/search" className="text-indigo-600 font-semibold hover:underline flex items-center">
+          <Link to="/search" className="text-brand-dark font-semibold hover:text-brand-accent flex items-center transition-colors">
             <ChevronLeft className="w-4 h-4 mr-1" />
             Back to search
           </Link>
@@ -58,12 +58,22 @@ export default function TripDetailPage() {
   const bus = trip.Bus || trip.bus || {};
   const route = trip.Route || trip.route || {};
   const stops = route.stops || route.Stops || trip.stops || [];
+
+  const resolveCity = (val, fallback = '') => {
+    if (!val) return fallback;
+    if (typeof val === 'string') return val;
+    if (typeof val === 'object') return val.city || val.name || fallback;
+    return String(val);
+  };
+
+  const sourceName = resolveCity(route.source, 'Source');
+  const destName = resolveCity(route.destination, 'Destination');
   const amenities = [
-    { icon: <Wifi className="w-4 h-4 text-indigo-600" />, label: 'High Speed Wi-Fi' },
-    { icon: <Zap className="w-4 h-4 text-indigo-600" />, label: 'Individual USB Charging' },
-    { icon: <Coffee className="w-4 h-4 text-indigo-600" />, label: 'Complimentary Water Bottle' },
-    { icon: <Sparkles className="w-4 h-4 text-indigo-600" />, label: 'Fresh Blanket & Pillow' },
-    { icon: <ShieldCheck className="w-4 h-4 text-indigo-600" />, label: 'Live GPS Vehicle Tracking' },
+    { icon: <Wifi className="w-4 h-4 text-brand-dark" />, label: 'High Speed Wi-Fi' },
+    { icon: <Zap className="w-4 h-4 text-brand-dark" />, label: 'Individual USB Charging' },
+    { icon: <Coffee className="w-4 h-4 text-brand-dark" />, label: 'Complimentary Water Bottle' },
+    { icon: <Sparkles className="w-4 h-4 text-brand-dark" />, label: 'Fresh Blanket & Pillow' },
+    { icon: <ShieldCheck className="w-4 h-4 text-brand-dark" />, label: 'Live GPS Vehicle Tracking' },
   ];
 
   return (
@@ -72,7 +82,7 @@ export default function TripDetailPage() {
         {/* Navigation Breadcrumb */}
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center text-sm font-semibold text-gray-600 hover:text-indigo-600 transition-colors"
+          className="flex items-center text-sm font-semibold text-gray-600 hover:text-brand-dark transition-colors"
         >
           <ChevronLeft className="w-4 h-4 mr-1" />
           Back to Results
@@ -82,7 +92,7 @@ export default function TripDetailPage() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pb-6 border-b border-gray-100">
             <div>
-              <div className="inline-flex items-center space-x-2 text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full uppercase tracking-wider mb-2">
+              <div className="inline-flex items-center space-x-2 text-xs font-bold text-brand-dark bg-brand-accent/20 px-3 py-1 rounded-full uppercase tracking-wider mb-2 border border-brand-accent/40">
                 <Bus className="w-3.5 h-3.5" />
                 <span>{bus.bus_type || 'AC Multi-Axle Sleeper'}</span>
               </div>
@@ -96,7 +106,7 @@ export default function TripDetailPage() {
 
             <div className="flex flex-col md:items-end">
               <span className="text-xs text-gray-400">Starting Fare</span>
-              <div className="text-3xl font-black text-indigo-600">
+              <div className="text-3xl font-black text-brand-dark">
                 ₹{trip.fare || trip.base_fare || 550}
               </div>
               <span className="text-xs text-emerald-600 font-semibold mt-1">
@@ -108,33 +118,33 @@ export default function TripDetailPage() {
           {/* Schedule Highlights */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-6 items-center">
             <div className="flex items-start space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-brand-accent/20 flex items-center justify-center text-brand-dark shrink-0">
                 <Clock className="w-5 h-5" />
               </div>
               <div>
                 <p className="text-xs text-gray-400">Departure</p>
                 <p className="text-lg font-bold text-gray-900">{trip.departure_time || '08:00 AM'}</p>
-                <p className="text-xs text-gray-600">{route.source || 'Source'}</p>
+                <p className="text-xs text-gray-600">{sourceName}</p>
               </div>
             </div>
 
             <div className="flex flex-col items-center justify-center text-center">
               <span className="text-xs font-semibold text-gray-400">Duration</span>
               <span className="text-sm font-bold text-gray-800 my-1">{trip.duration || route.duration || '6 hours'}</span>
-              <div className="w-28 h-0.5 bg-indigo-200 relative">
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-indigo-600" />
-                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-indigo-600" />
+              <div className="w-28 h-0.5 bg-brand-accent/30 relative">
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-brand-accent" />
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-brand-accent" />
               </div>
             </div>
 
             <div className="flex items-start space-x-3 sm:justify-end">
-              <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-brand-accent/20 flex items-center justify-center text-brand-dark shrink-0">
                 <Calendar className="w-5 h-5" />
               </div>
               <div>
                 <p className="text-xs text-gray-400">Arrival</p>
                 <p className="text-lg font-bold text-gray-900">{trip.arrival_time || '02:00 PM'}</p>
-                <p className="text-xs text-gray-600">{route.destination || 'Destination'}</p>
+                <p className="text-xs text-gray-600">{destName}</p>
               </div>
             </div>
           </div>
@@ -144,21 +154,21 @@ export default function TripDetailPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="md:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 space-y-6">
             <h2 className="text-lg font-bold text-gray-900 flex items-center space-x-2">
-              <MapPin className="w-5 h-5 text-indigo-600" />
+              <MapPin className="w-5 h-5 text-brand-dark" />
               <span>Journey Route & Major Stops</span>
             </h2>
 
             {/* Stops Timeline */}
-            <div className="relative pl-6 border-l-2 border-indigo-200 space-y-6">
+            <div className="relative pl-6 border-l-2 border-brand-accent/30 space-y-6">
               <div className="relative">
-                <div className="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full bg-indigo-600 ring-4 ring-indigo-50" />
-                <h4 className="font-bold text-gray-900">{route.source || 'Departure Origin'}</h4>
+                <div className="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full bg-brand-dark ring-4 ring-brand-accent/20" />
+                <h4 className="font-bold text-gray-900">{sourceName}</h4>
                 <p className="text-xs text-gray-500">Scheduled Departure: {trip.departure_time || '08:00 AM'}</p>
               </div>
 
               {stops.map((stop, i) => (
                 <div key={i} className="relative">
-                  <div className="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full bg-white border-2 border-indigo-500" />
+                  <div className="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full bg-white border-2 border-brand-accent" />
                   <h4 className="font-semibold text-gray-800">{stop.name || stop.stop_name || `Intermediate Halt ${i+1}`}</h4>
                   <p className="text-xs text-gray-500">Estimated Halt: {stop.time || `${i * 1.5 + 2} hrs from origin`}</p>
                 </div>
@@ -166,7 +176,7 @@ export default function TripDetailPage() {
 
               <div className="relative">
                 <div className="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full bg-emerald-600 ring-4 ring-emerald-50" />
-                <h4 className="font-bold text-gray-900">{route.destination || 'Final Destination'}</h4>
+                <h4 className="font-bold text-gray-900">{destName}</h4>
                 <p className="text-xs text-gray-500">Expected Arrival: {trip.arrival_time || '02:00 PM'}</p>
               </div>
             </div>
@@ -185,7 +195,7 @@ export default function TripDetailPage() {
               <div className="space-y-3">
                 {amenities.map((item, idx) => (
                   <div key={idx} className="flex items-center space-x-3 text-xs text-gray-700">
-                    <div className="p-1.5 rounded-lg bg-indigo-50">{item.icon}</div>
+                    <div className="p-1.5 rounded-lg bg-brand-accent/15">{item.icon}</div>
                     <span className="font-medium">{item.label}</span>
                   </div>
                 ))}
@@ -193,17 +203,17 @@ export default function TripDetailPage() {
             </div>
 
             {/* Proceed to Seat Selection Button */}
-            <div className="bg-gradient-to-br from-indigo-700 to-indigo-900 text-white p-6 rounded-2xl shadow-lg space-y-4">
+            <div className="bg-gradient-to-br from-brand-darker via-brand-dark to-[#0A261D] text-white p-6 rounded-2xl shadow-xl border border-brand-accent/30 space-y-4">
               <div>
-                <span className="text-xs text-indigo-200">Fare per person</span>
-                <div className="text-2xl font-black">₹{trip.fare || trip.base_fare || 550}</div>
+                <span className="text-xs text-gray-300">Fare per person</span>
+                <div className="text-2xl font-black text-brand-accent">₹{trip.fare || trip.base_fare || 550}</div>
               </div>
-              <p className="text-xs text-indigo-100 leading-relaxed">
+              <p className="text-xs text-gray-300 leading-relaxed">
                 Choose your favorite window or aisle seat with real-time seat availability.
               </p>
               <Link
                 to={`/trips/${tripId}/seats`}
-                className="w-full block py-3 text-center bg-white text-indigo-700 hover:bg-indigo-50 font-bold rounded-xl shadow transition-all transform active:scale-95"
+                className="w-full block py-3.5 text-center bg-brand-accent hover:bg-brand-accent-hover text-brand-dark font-extrabold rounded-xl shadow-lg shadow-brand-accent/30 transition-all transform active:scale-95"
               >
                 Proceed to Seat Selection
               </Link>

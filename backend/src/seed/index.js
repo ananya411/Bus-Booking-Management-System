@@ -9,39 +9,10 @@ const Booking = require('../models/booking.model');
 const SeatAllocation = require('../models/seatAllocation.model');
 const AuditLog = require('../models/auditLog.model');
 const { generatePNR } = require('../utils/pnr');
-
-const generateSeatLayout = (rows = 10, seatsPerRow = 4) => {
-  const layout = [];
-  const colLabels = ['A', 'B', 'C', 'D'];
-
-  for (let r = 1; r <= rows; r++) {
-    const row = [];
-    for (let c = 0; c < seatsPerRow; c++) {
-      const seatNumber = `${r}${colLabels[c] || c + 1}`;
-      let type = 'middle';
-      if (c === 0 || c === seatsPerRow - 1) {
-        type = 'window';
-      } else {
-        type = 'aisle';
-      }
-      row.push({
-        seatNumber,
-        type,
-        deck: 'lower'
-      });
-    }
-    layout.push(row);
-  }
-
-  return {
-    rows,
-    seatsPerRow,
-    layout
-  };
-};
+const { generateSeatLayout } = require('../utils/providers');
 
 const seed = async () => {
-  const uri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/bus-booking';
+  const uri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/busmitra';
   const isForce = process.argv.includes('--force');
 
   console.log(`[Seed] Connecting to MongoDB: ${uri}`);
@@ -57,320 +28,241 @@ const seed = async () => {
       Trip.deleteMany({}),
       Booking.deleteMany({}),
       SeatAllocation.deleteMany({}),
-      AuditLog.deleteMany({})
+      AuditLog.deleteMany({}),
     ]);
-    console.log('[Seed] All collections cleared.');
-  } else {
-    const existingUsers = await User.countDocuments();
-    if (existingUsers > 0) {
-      console.log('[Seed] Database already contains data. Use --force to reset and re-seed.');
-      await mongoose.disconnect();
-      return;
-    }
+    console.log('[Seed] Cleared collections.');
   }
 
-  console.log('[Seed] Creating demo users...');
-  const [admin, operator, customer] = await Promise.all([
-    User.create({
+  // 1. Users
+  console.log('[Seed] Creating users...');
+  let admin = await User.findOne({ email: 'admin@demo.com' });
+  if (!admin) {
+    admin = await User.create({
       name: 'System Admin',
       email: 'admin@demo.com',
       password: 'Demo@123',
       role: 'admin',
-      phone: '+919876543210'
-    }),
-    User.create({
+      phone: '+919876543210',
+    });
+  }
+
+  let operator = await User.findOne({ email: 'operator@demo.com' });
+  if (!operator) {
+    operator = await User.create({
       name: 'Fleet Operator',
       email: 'operator@demo.com',
       password: 'Demo@123',
       role: 'operator',
-      phone: '+919876543211'
-    }),
-    User.create({
+      phone: '+919876543211',
+    });
+  }
+
+  let customer = await User.findOne({ email: 'customer@demo.com' });
+  if (!customer) {
+    customer = await User.create({
       name: 'John Doe',
       email: 'customer@demo.com',
       password: 'Demo@123',
       role: 'customer',
-      phone: '+919876543212'
-    })
-  ]);
-  console.log('[Seed] 3 Users created (admin, operator, customer).');
+      phone: '+919876543212',
+    });
+  }
+  console.log('[Seed] Verified Admin, Operator, and Customer accounts.');
 
-  console.log('[Seed] Creating stops...');
-  const [delhi, mumbai, pune, bangalore, hyderabad] = await Promise.all([
-    Stop.create({ name: 'Kashmere Gate ISBT', city: 'Delhi', state: 'Delhi' }),
-    Stop.create({ name: 'Borivali East', city: 'Mumbai', state: 'Maharashtra' }),
-    Stop.create({ name: 'Shivaji Nagar', city: 'Pune', state: 'Maharashtra' }),
-    Stop.create({ name: 'Majestic Bus Terminal', city: 'Bangalore', state: 'Karnataka' }),
-    Stop.create({ name: 'MGBS Hyderabad', city: 'Hyderabad', state: 'Telangana' })
-  ]);
-  console.log('[Seed] 5 Stops created (Delhi, Mumbai, Pune, Bangalore, Hyderabad).');
+  // 2. Stops
+  console.log('[Seed] Ensuring top hub stops...');
+  const stopsDef = [
+    { name: 'Kashmere Gate ISBT', city: 'Delhi', state: 'Delhi NCR' },
+    { name: 'Alambagh Intercity Terminal', city: 'Lucknow', state: 'Uttar Pradesh' },
+    { name: 'Borivali East Highway Stop', city: 'Mumbai', state: 'Maharashtra' },
+    { name: 'Shivaji Nagar Terminal', city: 'Pune', state: 'Maharashtra' },
+    { name: 'Majestic Bus Stand', city: 'Bangalore', state: 'Karnataka' },
+    { name: 'MGBS Imlibun Terminal', city: 'Hyderabad', state: 'Telangana' },
+    { name: 'Sindhi Camp Central Bus Stand', city: 'Jaipur', state: 'Rajasthan' },
+    { name: 'Geeta Mandir Central Bus Stand', city: 'Ahmedabad', state: 'Gujarat' },
+    { name: 'Koyambedu CMBT Terminal', city: 'Chennai', state: 'Tamil Nadu' },
+    { name: 'Panaji KTC Bus Stand', city: 'Goa', state: 'Goa' },
+    { name: 'Sector 17 ISBT', city: 'Chandigarh', state: 'Punjab' },
+  ];
 
-  console.log('[Seed] Creating routes...');
-  const [routeDelhiMumbai, routeMumbaiPune, routeDelhiBangalore] = await Promise.all([
-    Route.create({
-      name: 'Delhi to Mumbai Express',
-      source: delhi._id,
-      destination: mumbai._id,
-      stops: [
-        { stop: delhi._id, arrivalOffset: 0, departureOffset: 0, distanceFromSource: 0 },
-        { stop: mumbai._id, arrivalOffset: 1440, departureOffset: 1440, distanceFromSource: 1420 }
-      ],
-      totalDistance: 1420,
-      estimatedDuration: 1440
-    }),
-    Route.create({
-      name: 'Mumbai to Pune Highway Express',
-      source: mumbai._id,
-      destination: pune._id,
-      stops: [
-        { stop: mumbai._id, arrivalOffset: 0, departureOffset: 0, distanceFromSource: 0 },
-        { stop: pune._id, arrivalOffset: 210, departureOffset: 210, distanceFromSource: 150 }
-      ],
-      totalDistance: 150,
-      estimatedDuration: 210
-    }),
-    Route.create({
-      name: 'Delhi to Bangalore Grand Route',
-      source: delhi._id,
-      destination: bangalore._id,
-      stops: [
-        { stop: delhi._id, arrivalOffset: 0, departureOffset: 0, distanceFromSource: 0 },
-        { stop: hyderabad._id, arrivalOffset: 1500, departureOffset: 1530, distanceFromSource: 1550 },
-        { stop: bangalore._id, arrivalOffset: 2160, departureOffset: 2160, distanceFromSource: 2150 }
-      ],
-      totalDistance: 2150,
-      estimatedDuration: 2160
-    })
-  ]);
-  console.log('[Seed] 3 Routes created.');
+  const stopMap = {};
+  for (const s of stopsDef) {
+    let doc = await Stop.findOne({ city: s.city });
+    if (!doc) {
+      doc = await Stop.create(s);
+    }
+    stopMap[s.city.toLowerCase()] = doc;
+  }
+  console.log(`[Seed] ${Object.keys(stopMap).length} City Stops verified.`);
 
-  console.log('[Seed] Creating buses with 40 seats layout...');
-  const seatLayout40 = generateSeatLayout(10, 4);
+  // 3. Corridors (Routes)
+  console.log('[Seed] Creating primary highway routes...');
+  const routesDef = [
+    { s: 'delhi', d: 'lucknow', name: 'Delhi to Lucknow Express Corridor', km: 550, mins: 495 },
+    { s: 'mumbai', d: 'pune', name: 'Mumbai to Pune Expressway', km: 150, mins: 195 },
+    { s: 'bangalore', d: 'hyderabad', name: 'Bangalore to Hyderabad Deccan Express', km: 570, mins: 525 },
+    { s: 'delhi', d: 'jaipur', name: 'Delhi to Jaipur Pink City Highway', km: 280, mins: 285 },
+    { s: 'ahmedabad', d: 'mumbai', name: 'Ahmedabad to Mumbai Western Express', km: 525, mins: 510 },
+    { s: 'chennai', d: 'bangalore', name: 'Chennai to Bangalore Silicon Highway', km: 345, mins: 360 },
+    { s: 'pune', d: 'goa', name: 'Pune to Goa Konkan Holiday Line', km: 450, mins: 540 },
+    { s: 'delhi', d: 'mumbai', name: 'Delhi to Mumbai Grand Trunk Line', km: 1420, mins: 1320 },
+    { s: 'delhi', d: 'chandigarh', name: 'Delhi to Chandigarh Shivalik Line', km: 250, mins: 255 },
+  ];
 
-  const [bus1, bus2, bus3] = await Promise.all([
-    Bus.create({
-      busNumber: 'DL-01-AB-1234',
-      name: 'Royal Volvo Multi-Axle',
-      type: 'Volvo',
-      totalSeats: 40,
-      seatLayout: seatLayout40,
-      operator: operator._id,
-      amenities: ['WiFi', 'AC', 'Charging Point', 'Water Bottle', 'Blanket', 'Reading Light'],
-      isActive: true
-    }),
-    Bus.create({
-      busNumber: 'MH-02-CD-5678',
-      name: 'Scania AC Sleeper',
-      type: 'AC Sleeper',
-      totalSeats: 40,
-      seatLayout: seatLayout40,
-      operator: operator._id,
-      amenities: ['AC', 'Charging Point', 'Blanket', 'Pillow', 'Water Bottle'],
-      isActive: true
-    }),
-    Bus.create({
-      busNumber: 'KA-03-EF-9012',
-      name: 'BharatBenz AC Seater',
-      type: 'AC Seater',
-      totalSeats: 40,
-      seatLayout: seatLayout40,
-      operator: operator._id,
-      amenities: ['AC', 'Charging Point', 'Water Bottle'],
-      isActive: true
-    })
-  ]);
-  console.log('[Seed] 3 Buses created.');
+  const routeMap = {};
+  for (const r of routesDef) {
+    const srcStop = stopMap[r.s];
+    const dstStop = stopMap[r.d];
+    if (srcStop && dstStop) {
+      let doc = await Route.findOne({ source: srcStop._id, destination: dstStop._id });
+      if (!doc) {
+        doc = await Route.create({
+          name: r.name,
+          source: srcStop._id,
+          destination: dstStop._id,
+          totalDistance: r.km,
+          estimatedDuration: r.mins,
+          stops: [],
+        });
+      }
+      routeMap[`${r.s}:${r.d}`] = doc;
+    }
+  }
+  console.log(`[Seed] ${Object.keys(routeMap).length} Verified Intercity Routes created.`);
 
-  console.log('[Seed] Creating 6 scheduled trips...');
+  // 4. Buses
+  console.log('[Seed] Creating premium operator buses...');
+  const busesDef = [
+    { num: 'DL-01-AB-1234', name: 'Royal Volvo 9600 Multi-Axle', type: 'AC Sleeper', seats: 36, isSleeper: true },
+    { num: 'MH-02-CD-5678', name: 'Scania Metrolink Multi-Axle HD', type: 'AC Sleeper', seats: 40, isSleeper: true },
+    { num: 'KA-03-EF-9012', name: 'BharatBenz 1623 Club Class', type: 'AC Seater', seats: 44, isSleeper: false },
+    { num: 'UP-32-GH-3456', name: 'Volvo Clean Fleet Express', type: 'Volvo', seats: 42, isSleeper: false },
+    { num: 'GJ-01-KL-7890', name: 'Mercedes-Benz Multi-Axle Suite', type: 'AC Sleeper', seats: 36, isSleeper: true },
+    { num: 'TN-01-MN-1122', name: 'Global Standard High-Deck Coach', type: 'Volvo', seats: 48, isSleeper: false },
+  ];
+
+  const busDocs = [];
+  for (const b of busesDef) {
+    let bus = await Bus.findOne({ busNumber: b.num });
+    if (!bus) {
+      bus = await Bus.create({
+        busNumber: b.num,
+        name: b.name,
+        type: b.type,
+        totalSeats: b.seats,
+        seatLayout: generateSeatLayout(b.seats, b.isSleeper),
+        operator: operator._id,
+        amenities: ['Wi-Fi', 'AC', 'Charging Point', 'Blanket', 'Reading Light', 'Live Tracking', 'CCTV'],
+        isActive: true,
+      });
+    }
+    busDocs.push(bus);
+  }
+  console.log(`[Seed] ${busDocs.length} Verified Fleet Coaches created.`);
+
+  // 5. Trips for multiple upcoming days
+  console.log('[Seed] Scheduling departures for next 14 days...');
   const now = new Date();
 
-  const getDateAfterDays = (days) => {
-    const d = new Date(now);
-    d.setDate(d.getDate() + days);
-    d.setHours(0, 0, 0, 0);
-    return d;
-  };
+  // Create departures for days 0, 1, 2, 3, 5, 7, 10
+  const daysOffset = [0, 1, 2, 3, 5, 7, 10];
+  let createdCount = 0;
 
-  const trips = await Promise.all([
-    // Delhi -> Mumbai
-    Trip.create({
-      bus: bus1._id,
-      route: routeDelhiMumbai._id,
-      operator: operator._id,
-      travelDate: getDateAfterDays(1),
-      departureTime: '06:00',
-      arrivalTime: '06:00',
-      fare: 1800,
-      boardingPoints: [{ stop: delhi._id, time: '05:30' }],
-      droppingPoints: [{ stop: mumbai._id, time: '06:00' }],
-      status: 'scheduled',
-      availableSeats: 40
-    }),
-    Trip.create({
-      bus: bus2._id,
-      route: routeDelhiMumbai._id,
-      operator: operator._id,
-      travelDate: getDateAfterDays(3),
-      departureTime: '18:00',
-      arrivalTime: '18:00',
-      fare: 1950,
-      boardingPoints: [{ stop: delhi._id, time: '17:30' }],
-      droppingPoints: [{ stop: mumbai._id, time: '18:00' }],
-      status: 'scheduled',
-      availableSeats: 40
-    }),
-    // Mumbai -> Pune
-    Trip.create({
-      bus: bus3._id,
-      route: routeMumbaiPune._id,
-      operator: operator._id,
-      travelDate: getDateAfterDays(1),
-      departureTime: '07:30',
-      arrivalTime: '11:00',
-      fare: 450,
-      boardingPoints: [{ stop: mumbai._id, time: '07:00' }],
-      droppingPoints: [{ stop: pune._id, time: '11:00' }],
-      status: 'scheduled',
-      availableSeats: 40
-    }),
-    Trip.create({
-      bus: bus1._id,
-      route: routeMumbaiPune._id,
-      operator: operator._id,
-      travelDate: getDateAfterDays(2),
-      departureTime: '15:00',
-      arrivalTime: '18:30',
-      fare: 450,
-      boardingPoints: [{ stop: mumbai._id, time: '14:30' }],
-      droppingPoints: [{ stop: pune._id, time: '18:30' }],
-      status: 'scheduled',
-      availableSeats: 40
-    }),
-    // Delhi -> Bangalore
-    Trip.create({
-      bus: bus2._id,
-      route: routeDelhiBangalore._id,
-      operator: operator._id,
-      travelDate: getDateAfterDays(2),
-      departureTime: '08:00',
-      arrivalTime: '20:00',
-      fare: 2500,
-      boardingPoints: [{ stop: delhi._id, time: '07:30' }],
-      droppingPoints: [{ stop: bangalore._id, time: '20:00' }],
-      status: 'scheduled',
-      availableSeats: 40
-    }),
-    Trip.create({
-      bus: bus3._id,
-      route: routeDelhiBangalore._id,
-      operator: operator._id,
-      travelDate: getDateAfterDays(5),
-      departureTime: '20:00',
-      arrivalTime: '08:00',
-      fare: 2650,
-      boardingPoints: [{ stop: delhi._id, time: '19:30' }],
-      droppingPoints: [{ stop: bangalore._id, time: '08:00' }],
-      status: 'scheduled',
-      availableSeats: 40
-    })
-  ]);
-  console.log('[Seed] 6 Trips created.');
+  for (const offset of daysOffset) {
+    const travelDate = new Date(now);
+    travelDate.setDate(travelDate.getDate() + offset);
+    travelDate.setUTCHours(0, 0, 0, 0);
 
-  console.log('[Seed] Creating 2 existing bookings for customer@demo.com...');
-  // Booking 1: On Trip 0 (Delhi to Mumbai), 2 seats (1A, 1B)
-  const trip1 = trips[0];
-  const booking1Pnr = generatePNR();
-  const passengers1 = [
-    { name: 'John Doe', age: 30, gender: 'male', seatNumber: '1A', fare: trip1.fare },
-    { name: 'Jane Doe', age: 28, gender: 'female', seatNumber: '1B', fare: trip1.fare }
-  ];
-  const booking1 = await Booking.create({
-    pnr: booking1Pnr,
-    user: customer._id,
-    trip: trip1._id,
-    passengers: passengers1,
-    totalFare: trip1.fare * 2,
-    status: 'confirmed',
-    paymentStatus: 'paid',
-    boardingPoint: delhi._id,
-    droppingPoint: mumbai._id,
-    bookedAt: new Date()
-  });
+    for (const [key, routeDoc] of Object.entries(routeMap)) {
+      const [srcCity] = key.split(':');
+      const srcStop = stopMap[srcCity];
+      const distance = routeDoc.totalDistance;
 
-  await SeatAllocation.create([
-    {
-      trip: trip1._id,
-      seatNumber: '1A',
-      booking: booking1._id,
-      passengerName: 'John Doe',
-      status: 'confirmed'
-    },
-    {
-      trip: trip1._id,
-      seatNumber: '1B',
-      booking: booking1._id,
-      passengerName: 'Jane Doe',
-      status: 'confirmed'
+      // Check if trip already exists for this route and day
+      const exists = await Trip.findOne({
+        route: routeDoc._id,
+        travelDate,
+      });
+
+      if (!exists) {
+        // Morning departure
+        const fareMorning = Math.round(Math.max(280, distance * 1.85) / 5) * 5;
+        await Trip.create({
+          bus: busDocs[0]._id,
+          route: routeDoc._id,
+          operator: operator._id,
+          travelDate,
+          departureTime: '06:30',
+          arrivalTime: '14:45',
+          fare: fareMorning,
+          boardingPoints: [{ stop: srcStop._id, time: '06:00' }],
+          droppingPoints: [{ stop: routeDoc.destination, time: '14:45' }],
+          status: 'scheduled',
+          availableSeats: 26,
+        });
+
+        // Evening departure
+        const fareEvening = Math.round(Math.max(350, distance * 2.20) / 5) * 5;
+        await Trip.create({
+          bus: busDocs[1]._id,
+          route: routeDoc._id,
+          operator: operator._id,
+          travelDate,
+          departureTime: '21:00',
+          arrivalTime: '05:30',
+          fare: fareEvening,
+          boardingPoints: [{ stop: srcStop._id, time: '20:30' }],
+          droppingPoints: [{ stop: routeDoc.destination, time: '05:30' }],
+          status: 'scheduled',
+          availableSeats: 19,
+        });
+
+        createdCount += 2;
+      }
     }
-  ]);
-  await Trip.findByIdAndUpdate(trip1._id, { $inc: { availableSeats: -2 } });
+  }
 
-  // Booking 2: On Trip 2 (Mumbai to Pune), 1 seat (2A)
-  const trip3 = trips[2];
-  const booking2Pnr = generatePNR();
-  const passengers2 = [
-    { name: 'John Doe', age: 30, gender: 'male', seatNumber: '2A', fare: trip3.fare }
-  ];
-  const booking2 = await Booking.create({
-    pnr: booking2Pnr,
-    user: customer._id,
-    trip: trip3._id,
-    passengers: passengers2,
-    totalFare: trip3.fare,
-    status: 'confirmed',
-    paymentStatus: 'paid',
-    boardingPoint: mumbai._id,
-    droppingPoint: pune._id,
-    bookedAt: new Date()
-  });
+  console.log(`[Seed] Finished scheduling ${createdCount} new dynamic trips across corridors.`);
 
-  await SeatAllocation.create([
-    {
-      trip: trip3._id,
-      seatNumber: '2A',
-      booking: booking2._id,
-      passengerName: 'John Doe',
-      status: 'confirmed'
+  // 6. Demo Booking with PNR for immediate test lookup
+  let demoBooking = await Booking.findOne({ pnr: 'BM782910' });
+  if (!demoBooking) {
+    const sampleTrip = await Trip.findOne({ status: 'scheduled' });
+    if (sampleTrip) {
+      demoBooking = await Booking.create({
+        pnr: 'BM782910',
+        user: customer._id,
+        trip: sampleTrip._id,
+        passengers: [
+          { name: 'Aditya Sharma', age: 29, gender: 'male', seatNumber: 'L4', fare: sampleTrip.fare },
+          { name: 'Priya Sharma', age: 27, gender: 'female', seatNumber: 'L5', fare: sampleTrip.fare },
+        ],
+        totalFare: sampleTrip.fare * 2,
+        status: 'confirmed',
+        paymentStatus: 'paid',
+        bookedAt: new Date(),
+      });
+
+      await SeatAllocation.create([
+        { trip: sampleTrip._id, seatNumber: 'L4', booking: demoBooking._id, passengerName: 'Aditya Sharma', status: 'confirmed' },
+        { trip: sampleTrip._id, seatNumber: 'L5', booking: demoBooking._id, passengerName: 'Priya Sharma', status: 'confirmed' },
+      ]);
+      console.log('[Seed] Demo Booking BM782910 created successfully.');
     }
-  ]);
-  await Trip.findByIdAndUpdate(trip3._id, { $inc: { availableSeats: -1 } });
+  }
 
-  console.log(`[Seed] Booking 1 created: PNR ${booking1Pnr} (2 seats)`);
-  console.log(`[Seed] Booking 2 created: PNR ${booking2Pnr} (1 seat)`);
+  console.log('----------------------------------------------------');
+  console.log('✅ SEED COMPLETED SUCCESSFULLY');
+  console.log('Admin:    admin@demo.com    / Demo@123');
+  console.log('Operator: operator@demo.com / Demo@123');
+  console.log('Customer: customer@demo.com / Demo@123');
+  console.log('Demo PNR: BM782910');
+  console.log('----------------------------------------------------');
 
-  // Audit log entry
-  await AuditLog.create({
-    user: admin._id,
-    action: 'SYSTEM_SEED',
-    resource: 'System',
-    resourceId: admin._id,
-    details: {
-      users: 3,
-      stops: 5,
-      routes: 3,
-      buses: 3,
-      trips: 6,
-      bookings: 2
-    },
-    ip: '127.0.0.1'
-  });
-
-  console.log('[Seed] Database successfully seeded with demo data!');
-  await mongoose.disconnect();
+  await mongoose.connection.close();
 };
 
 seed().catch((err) => {
-  console.error('[Seed] Error seeding database:', err);
-  mongoose.disconnect();
+  console.error('[Seed Error]:', err);
   process.exit(1);
 });

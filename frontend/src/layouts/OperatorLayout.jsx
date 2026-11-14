@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Bus, LayoutDashboard, Calendar, LogOut, Menu, X, ArrowLeft } from 'lucide-react';
+import Logo from '../components/Logo';
+import { Bus, LayoutDashboard, Calendar, LogOut, Menu, X, ArrowLeft, Route as RouteIcon, PlusCircle } from 'lucide-react';
 
 export default function OperatorLayout() {
   const { user, logout } = useAuth();
@@ -25,18 +26,15 @@ export default function OperatorLayout() {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-slate-300 flex flex-col justify-between transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-brand-darker border-r border-slate-800 text-slate-300 flex flex-col justify-between transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <div>
           {/* Logo & Brand */}
-          <div className="h-16 flex items-center justify-between px-6 border-b border-slate-800">
-            <Link to="/" className="flex items-center space-x-2 text-white">
-              <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold">
-                <Bus className="w-5 h-5" />
-              </div>
-              <span className="text-lg font-bold">Operator Desk</span>
+          <div className="h-16 flex items-center justify-between px-5 border-b border-slate-800">
+            <Link to="/" className="flex items-center group">
+              <Logo className="h-9 w-auto" />
             </Link>
             <button
               onClick={() => setSidebarOpen(false)}
@@ -49,12 +47,57 @@ export default function OperatorLayout() {
           {/* Navigation Links */}
           <nav className="p-4 space-y-1">
             <NavLink
+              to="/operator/dashboard"
+              onClick={() => setSidebarOpen(false)}
+              className={({ isActive }) =>
+                `flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+                  isActive
+                    ? 'bg-brand-accent text-brand-dark shadow-md shadow-brand-accent/30 font-bold'
+                    : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                }`
+              }
+            >
+              <LayoutDashboard className="w-5 h-5" />
+              <span>Dashboard &amp; Reports</span>
+            </NavLink>
+
+            <NavLink
+              to="/operator/buses"
+              onClick={() => setSidebarOpen(false)}
+              className={({ isActive }) =>
+                `flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+                  isActive
+                    ? 'bg-brand-accent text-brand-dark shadow-md shadow-brand-accent/30 font-bold'
+                    : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                }`
+              }
+            >
+              <Bus className="w-5 h-5" />
+              <span>My Fleet (Buses)</span>
+            </NavLink>
+
+            <NavLink
+              to="/operator/schedule-trip"
+              onClick={() => setSidebarOpen(false)}
+              className={({ isActive }) =>
+                `flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+                  isActive
+                    ? 'bg-brand-accent text-brand-dark shadow-md shadow-brand-accent/30 font-bold'
+                    : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                }`
+              }
+            >
+              <PlusCircle className="w-5 h-5" />
+              <span>Add Bus to Route</span>
+            </NavLink>
+
+            <NavLink
               to="/operator/trips"
               onClick={() => setSidebarOpen(false)}
               className={({ isActive }) =>
                 `flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
                   isActive
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                    ? 'bg-brand-accent text-brand-dark shadow-md shadow-brand-accent/30 font-bold'
                     : 'text-slate-400 hover:bg-slate-800 hover:text-white'
                 }`
               }
@@ -77,7 +120,7 @@ export default function OperatorLayout() {
 
           <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-slate-800/80">
             <div className="flex items-center space-x-2.5 overflow-hidden">
-              <div className="w-8 h-8 rounded-full bg-indigo-500 text-white flex items-center justify-center font-bold text-xs uppercase shrink-0">
+              <div className="w-8 h-8 rounded-full bg-brand-accent text-brand-dark flex items-center justify-center font-black text-xs uppercase shrink-0">
                 {user?.name ? user.name[0] : 'O'}
               </div>
               <div className="truncate text-xs">

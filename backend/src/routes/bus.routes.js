@@ -37,6 +37,20 @@ router.get('/', busController.getAllBuses);
 
 /**
  * @swagger
+ * /api/buses/my:
+ *   get:
+ *     summary: Get buses belonging to the logged-in operator
+ *     tags: [Buses]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of operator's buses
+ */
+router.get('/my', authenticate, authorize('operator', 'admin'), busController.getMyBuses);
+
+/**
+ * @swagger
  * /api/buses/{id}:
  *   get:
  *     summary: Get bus by ID
@@ -84,7 +98,7 @@ router.get('/:id', busController.getBusById);
 router.post(
   '/',
   authenticate,
-  authorize('admin'),
+  authorize('operator', 'admin'),
   createBusValidator,
   validate,
   auditLogger('CREATE_BUS', 'Bus'),
@@ -95,7 +109,7 @@ router.post(
  * @swagger
  * /api/buses/{id}:
  *   put:
- *     summary: Update an existing bus (Admin only)
+ *     summary: Update an existing bus (Operator or Admin)
  *     tags: [Buses]
  *     security:
  *       - bearerAuth: []
@@ -109,12 +123,12 @@ router.post(
  *       200:
  *         description: Bus updated successfully
  *       403:
- *         description: Forbidden - Admin only
+ *         description: Forbidden - Operator or Admin only
  */
 router.put(
   '/:id',
   authenticate,
-  authorize('admin'),
+  authorize('operator', 'admin'),
   updateBusValidator,
   validate,
   auditLogger('UPDATE_BUS', 'Bus'),
@@ -125,7 +139,7 @@ router.put(
  * @swagger
  * /api/buses/{id}:
  *   delete:
- *     summary: Delete a bus (Admin only)
+ *     summary: Delete a bus (Operator or Admin)
  *     tags: [Buses]
  *     security:
  *       - bearerAuth: []
@@ -139,12 +153,12 @@ router.put(
  *       200:
  *         description: Bus deleted successfully
  *       403:
- *         description: Forbidden - Admin only
+ *         description: Forbidden - Operator or Admin only
  */
 router.delete(
   '/:id',
   authenticate,
-  authorize('admin'),
+  authorize('operator', 'admin'),
   auditLogger('DELETE_BUS', 'Bus'),
   busController.deleteBus
 );

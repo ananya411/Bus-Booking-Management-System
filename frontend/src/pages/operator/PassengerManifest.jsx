@@ -4,6 +4,7 @@ import { operatorApi } from '../../services/api';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import ErrorMessage from '../../components/ErrorMessage';
 import StatusBadge from '../../components/StatusBadge';
+import { resolveCityName, resolvePointName } from '../../utils/formatters';
 import { 
   Bus, Printer, Users, ChevronLeft, CheckSquare, Square, 
   MapPin, Clock, Calendar, ArrowRight, ShieldCheck 
@@ -86,7 +87,7 @@ export default function PassengerManifest() {
       <div className="no-print flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <button
           onClick={() => navigate('/operator/trips')}
-          className="flex items-center text-sm font-semibold text-gray-600 hover:text-indigo-600 transition-colors"
+          className="flex items-center text-sm font-semibold text-gray-600 hover:text-brand-dark transition-colors"
         >
           <ChevronLeft className="w-4 h-4 mr-1" />
           Back to Assigned Trips
@@ -94,7 +95,7 @@ export default function PassengerManifest() {
 
         <button
           onClick={handlePrint}
-          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-xl shadow-md flex items-center space-x-2 transition-all"
+          className="px-4 py-2 bg-brand-accent hover:bg-brand-accent-hover text-brand-dark font-extrabold text-sm rounded-xl shadow-md flex items-center space-x-2 transition-all"
         >
           <Printer className="w-4 h-4" />
           <span>Print Manifest Sheet</span>
@@ -109,7 +110,7 @@ export default function PassengerManifest() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-100 pb-6 gap-4">
           <div>
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold">
+              <div className="w-8 h-8 rounded-lg bg-brand-dark text-brand-accent flex items-center justify-center font-bold">
                 <Bus className="w-4 h-4" />
               </div>
               <h1 className="text-xl sm:text-2xl font-black text-gray-900">Official Passenger Manifest</h1>
@@ -122,7 +123,7 @@ export default function PassengerManifest() {
           <div className="text-left sm:text-right">
             <span className="text-xs text-gray-400 font-semibold block">Date & Departure</span>
             <p className="text-sm font-bold text-gray-900">{manifest?.trip_date || 'Today'}</p>
-            <p className="text-xs font-bold text-indigo-600">{manifest?.departure_time || '08:00 AM'}</p>
+            <p className="text-xs font-bold text-brand-dark">{manifest?.departure_time || '08:00 AM'}</p>
           </div>
         </div>
 
@@ -138,11 +139,11 @@ export default function PassengerManifest() {
           </div>
           <div>
             <span className="text-gray-400 font-semibold uppercase">Route</span>
-            <p className="font-bold text-gray-900 mt-0.5">{route.source || 'Origin'} → {route.destination || 'Destination'}</p>
+            <p className="font-bold text-gray-900 mt-0.5">{resolveCityName(route.source, 'Origin')} → {resolveCityName(route.destination, 'Destination')}</p>
           </div>
           <div>
             <span className="text-gray-400 font-semibold uppercase">Capacity Status</span>
-            <p className="font-bold text-indigo-600 mt-0.5">{confirmed} Booked / {available} Vacant</p>
+            <p className="font-bold text-brand-dark mt-0.5">{confirmed} Booked / {available} Vacant</p>
           </div>
         </div>
 
@@ -182,7 +183,7 @@ export default function PassengerManifest() {
                         <button
                           type="button"
                           onClick={() => toggleCheckIn(p.seat_number)}
-                          className="text-gray-400 hover:text-indigo-600"
+                          className="text-gray-400 hover:text-brand-dark"
                         >
                           {isChecked ? (
                             <CheckSquare className="w-4 h-4 text-emerald-600" />
@@ -191,7 +192,7 @@ export default function PassengerManifest() {
                           )}
                         </button>
                       </td>
-                      <td className="py-3 px-4 font-mono font-black text-indigo-700">
+                      <td className="py-3 px-4 font-mono font-black text-brand-dark">
                         {p.seat_number}
                       </td>
                       <td className="py-3 px-4 font-bold text-gray-900">
@@ -204,10 +205,10 @@ export default function PassengerManifest() {
                         {p.pnr || 'BM-102938'}
                       </td>
                       <td className="py-3 px-4 text-gray-700 font-medium">
-                        {p.boarding || 'Main Terminal'}
+                        {resolvePointName(p.boarding, 'Main Terminal')}
                       </td>
                       <td className="py-3 px-4 text-gray-700 font-medium">
-                        {p.dropping || 'City Station'}
+                        {resolvePointName(p.dropping, 'City Station')}
                       </td>
                       <td className="py-3 px-4 text-gray-500 font-mono">
                         {p.contact || '—'}

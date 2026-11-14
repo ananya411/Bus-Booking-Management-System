@@ -2,7 +2,17 @@ const { body } = require('express-validator');
 
 const tripStatuses = ['scheduled', 'in-progress', 'completed', 'cancelled'];
 
+const normalizeTripInput = (val, { req }) => {
+  req.body.bus = req.body.bus || req.body.bus_id;
+  req.body.route = req.body.route || req.body.route_id;
+  req.body.travelDate = req.body.travelDate || req.body.trip_date;
+  req.body.departureTime = req.body.departureTime || req.body.departure_time;
+  req.body.arrivalTime = req.body.arrivalTime || req.body.arrival_time;
+  return true;
+};
+
 const createTripValidator = [
+  body('bus').custom(normalizeTripInput),
   body('bus')
     .notEmpty()
     .withMessage('Bus is required')

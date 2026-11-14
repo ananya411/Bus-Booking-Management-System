@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { User, Phone, Mail, MapPin, ArrowRight, ChevronLeft, ShieldCheck, AlertCircle } from 'lucide-react';
 import ErrorMessage from '../components/ErrorMessage';
+import { resolveCityName } from '../utils/formatters';
 
 export default function PassengerDetailsPage() {
   const navigate = useNavigate();
@@ -47,12 +48,14 @@ export default function PassengerDetailsPage() {
       // Default boarding and dropping points from trip details
       const route = parsed.tripDetails?.Route || parsed.tripDetails?.route;
       const stops = route?.stops || [];
+      const srcName = resolveCityName(route?.source, 'Origin');
+      const destName = resolveCityName(route?.destination, 'Destination');
       if (stops.length > 0) {
-        setBoardingPoint(stops[0].name || route.source || 'Main Terminal');
-        setDroppingPoint(stops[stops.length - 1].name || route.destination || 'City Hub');
+        setBoardingPoint(stops[0].name || srcName || 'Main Terminal');
+        setDroppingPoint(stops[stops.length - 1].name || destName || 'City Hub');
       } else {
-        setBoardingPoint(route?.source ? `${route.source} Central Bus Stand` : 'Main Bus Terminal');
-        setDroppingPoint(route?.destination ? `${route.destination} Bypass Junction` : 'City Center Station');
+        setBoardingPoint(srcName ? `${srcName} Central Bus Stand` : 'Main Bus Terminal');
+        setDroppingPoint(destName ? `${destName} Bypass Junction` : 'City Center Station');
       }
     } catch (e) {
       navigate('/search');
@@ -129,7 +132,7 @@ export default function PassengerDetailsPage() {
       <div className="max-w-4xl mx-auto space-y-6">
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center text-sm font-semibold text-gray-600 hover:text-indigo-600 transition-colors"
+          className="flex items-center text-sm font-semibold text-gray-600 hover:text-brand-dark transition-colors"
         >
           <ChevronLeft className="w-4 h-4 mr-1" />
           Back to Seat Selection
@@ -154,7 +157,7 @@ export default function PassengerDetailsPage() {
                   className="bg-gray-50 rounded-2xl p-6 border border-gray-200/80 space-y-4"
                 >
                   <div className="flex items-center justify-between border-b border-gray-200 pb-3">
-                    <span className="text-xs font-bold text-indigo-700 uppercase tracking-wider bg-indigo-50 px-2.5 py-1 rounded-md">
+                    <span className="text-xs font-bold text-brand-dark uppercase tracking-wider bg-brand-accent/20 px-2.5 py-1 rounded-md">
                       Seat {passenger.seat_number}
                     </span>
                     <span className="text-xs text-gray-400 font-medium">Passenger #{idx + 1}</span>
@@ -171,7 +174,7 @@ export default function PassengerDetailsPage() {
                         value={passenger.name}
                         onChange={(e) => handlePassengerChange(idx, 'name', e.target.value)}
                         placeholder="e.g. Rahul Sharma"
-                        className={`w-full px-4 py-2.5 bg-white border rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500 ${
+                        className={`w-full px-4 py-2.5 bg-white border rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-brand-accent ${
                           errors[`passenger_${idx}_name`] ? 'border-red-400 bg-red-50/20' : 'border-gray-300'
                         }`}
                       />
@@ -192,7 +195,7 @@ export default function PassengerDetailsPage() {
                         value={passenger.age}
                         onChange={(e) => handlePassengerChange(idx, 'age', e.target.value)}
                         placeholder="Age"
-                        className={`w-full px-4 py-2.5 bg-white border rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500 ${
+                        className={`w-full px-4 py-2.5 bg-white border rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-brand-accent ${
                           errors[`passenger_${idx}_age`] ? 'border-red-400 bg-red-50/20' : 'border-gray-300'
                         }`}
                       />
@@ -209,7 +212,7 @@ export default function PassengerDetailsPage() {
                       <select
                         value={passenger.gender}
                         onChange={(e) => handlePassengerChange(idx, 'gender', e.target.value)}
-                        className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-brand-accent"
                       >
                         <option value="male">Male</option>
                         <option value="female">Female</option>
@@ -230,13 +233,13 @@ export default function PassengerDetailsPage() {
                     Boarding Point *
                   </label>
                   <div className="relative">
-                    <MapPin className="w-4 h-4 text-indigo-600 absolute left-3.5 top-3" />
+                    <MapPin className="w-4 h-4 text-brand-dark absolute left-3.5 top-3" />
                     <input
                       type="text"
                       value={boardingPoint}
                       onChange={(e) => setBoardingPoint(e.target.value)}
                       placeholder="Enter Boarding Point"
-                      className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
+                      className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-brand-accent focus:bg-white"
                       required
                     />
                   </div>
@@ -247,13 +250,13 @@ export default function PassengerDetailsPage() {
                     Dropping Point *
                   </label>
                   <div className="relative">
-                    <MapPin className="w-4 h-4 text-indigo-600 absolute left-3.5 top-3" />
+                    <MapPin className="w-4 h-4 text-brand-dark absolute left-3.5 top-3" />
                     <input
                       type="text"
                       value={droppingPoint}
                       onChange={(e) => setDroppingPoint(e.target.value)}
                       placeholder="Enter Dropping Point"
-                      className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
+                      className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-brand-accent focus:bg-white"
                       required
                     />
                   </div>
@@ -276,7 +279,7 @@ export default function PassengerDetailsPage() {
                       value={contactEmail}
                       onChange={(e) => setContactEmail(e.target.value)}
                       placeholder="passenger@example.com"
-                      className={`w-full pl-10 pr-4 py-2.5 bg-gray-50 border rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white ${
+                      className={`w-full pl-10 pr-4 py-2.5 bg-gray-50 border rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-brand-accent focus:bg-white ${
                         errors.email ? 'border-red-400' : 'border-gray-300'
                       }`}
                       required
@@ -296,7 +299,7 @@ export default function PassengerDetailsPage() {
                       value={contactPhone}
                       onChange={(e) => setContactPhone(e.target.value)}
                       placeholder="10-digit mobile number"
-                      className={`w-full pl-10 pr-4 py-2.5 bg-gray-50 border rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white ${
+                      className={`w-full pl-10 pr-4 py-2.5 bg-gray-50 border rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-brand-accent focus:bg-white ${
                         errors.phone ? 'border-red-400' : 'border-gray-300'
                       }`}
                       required
@@ -316,7 +319,7 @@ export default function PassengerDetailsPage() {
 
               <button
                 type="submit"
-                className="w-full sm:w-auto px-8 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/30 flex items-center justify-center space-x-2 transition-all transform active:scale-95"
+                className="w-full sm:w-auto px-8 py-3.5 bg-brand-accent hover:bg-brand-accent-hover text-brand-dark font-extrabold rounded-xl shadow-lg shadow-brand-accent/30 flex items-center justify-center space-x-2 transition-all transform active:scale-95"
               >
                 <span>Proceed to Review & Pay</span>
                 <ArrowRight className="w-4 h-4" />

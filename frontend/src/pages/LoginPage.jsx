@@ -1,18 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Bus, Mail, Lock, LogIn, Key } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, LogIn, Key, ShieldCheck } from 'lucide-react';
 import ErrorMessage from '../components/ErrorMessage';
-
-const G = {
-  forest:    '#1a3a16',
-  forestMid: '#1e5219',
-  accent:    '#7db575',
-  beige50:   '#faf7f0',
-  beige100:  '#f5f0e8',
-  beige200:  '#ede4d0',
-  beigeDark: '#a08c5b',
-};
+import Logo from '../components/Logo';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -22,21 +13,26 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    if (!email || !password) { setError('Please fill in both email and password.'); return; }
+  const performLogin = async (loginEmail, loginPass) => {
     setLoading(true);
     setError('');
     try {
-      const res = await login(email, password);
+      const res = await login(loginEmail, loginPass);
       const userRole = res.data?.user?.role || res.data?.role;
       if (redirectPath === '/') {
-        if (userRole === 'admin') { navigate('/admin/dashboard'); return; }
-        if (userRole === 'operator') { navigate('/operator/trips'); return; }
+        if (userRole === 'admin') {
+          navigate('/admin/dashboard');
+          return;
+        }
+        if (userRole === 'operator') {
+          navigate('/operator/trips');
+          return;
+        }
       }
       navigate(redirectPath);
     } catch (err) {
@@ -46,105 +42,162 @@ export default function LoginPage() {
     }
   };
 
-  const fillDemo = (e, p) => { setEmail(e); setPassword(p); setError(''); };
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    if (!email || !password) {
+      setError('Please fill in both email and password.');
+      return;
+    }
+    await performLogin(email, password);
+  };
+
+  const handleQuickDemo = async (demoEmail, demoPass) => {
+    setEmail(demoEmail);
+    setPassword(demoPass);
+    setError('');
+    await performLogin(demoEmail, demoPass);
+  };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8" style={{ background: G.beige100 }}>
+    <div className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-brand-gray">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <Link to="/" className="inline-flex items-center space-x-2" style={{ textDecoration: 'none' }}>
-          <div className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg" style={{ background: G.forestMid, color: G.beige50 }}>
-            <Bus className="w-7 h-7" />
-          </div>
-          <span className="text-2xl font-black" style={{ color: G.forest }}>Bus<span style={{ color: G.accent }}>Mitra</span></span>
+        <Link to="/" className="inline-block hover:opacity-90 transition-opacity">
+          <Logo className="h-12 w-auto mx-auto" />
         </Link>
-        <h2 className="mt-4 text-2xl font-extrabold tracking-tight" style={{ color: G.forest }}>Sign In to Your Account</h2>
-        <p className="mt-1 text-sm" style={{ color: G.beigeDark }}>
+        <h2 className="mt-4 text-2xl font-extrabold tracking-tight text-gray-900">
+          Sign In to Your Account
+        </h2>
+        <p className="mt-1 text-sm text-gray-500">
           Or{' '}
-          <Link to="/register" className="font-semibold" style={{ color: G.forestMid, textDecoration: 'none' }}>create a new account today</Link>
+          <Link to="/register" className="font-bold text-brand-dark hover:underline">
+            create a new account today
+          </Link>
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">
-        <div className="py-8 px-6 sm:px-10 shadow-xl rounded-3xl border space-y-6" style={{ background: '#fff', borderColor: G.beige200 }}>
+        <div className="py-8 px-6 sm:px-10 shadow-xl rounded-3xl border border-gray-100 bg-white space-y-6">
           {error && <ErrorMessage message={error} onClose={() => setError('')} />}
 
           <form onSubmit={handleLogin} className="space-y-4">
-            {/* Email */}
+            {/* Email Address */}
             <div>
-              <label className="block text-xs font-bold uppercase mb-1" style={{ color: G.forest }}>Email Address</label>
+              <label htmlFor="login-email" className="block text-xs font-bold uppercase mb-1 text-gray-700 tracking-wider">
+                Email Address
+              </label>
               <div className="relative">
-                <Mail className="w-5 h-5 absolute left-3.5 top-3" style={{ color: G.beigeDark }} />
+                <Mail className="w-5 h-5 absolute left-3.5 top-3 text-gray-400 pointer-events-none" />
                 <input
-                  type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@example.com" required
-                  className="w-full pl-11 pr-4 py-2.5 rounded-xl text-sm font-medium outline-none transition-all border"
-                  style={{ background: G.beige50, borderColor: G.beige200, color: G.forest }}
-                  onFocus={(e) => { e.target.style.borderColor = G.forestMid; e.target.style.boxShadow = '0 0 0 3px rgba(30,82,25,0.1)'; }}
-                  onBlur={(e) => { e.target.style.borderColor = G.beige200; e.target.style.boxShadow = 'none'; }}
+                  id="login-email"
+                  name="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@example.com"
+                  required
+                  autoComplete="username"
+                  className="w-full pl-11 pr-4 py-2.5 rounded-xl text-sm font-medium outline-none transition-all border border-gray-300 bg-gray-50/70 text-gray-900 focus:bg-white focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/20 placeholder-gray-400"
                 />
               </div>
             </div>
 
             {/* Password */}
             <div>
-              <label className="block text-xs font-bold uppercase mb-1" style={{ color: G.forest }}>Password</label>
+              <label htmlFor="login-password" className="block text-xs font-bold uppercase mb-1 text-gray-700 tracking-wider">
+                Password
+              </label>
               <div className="relative">
-                <Lock className="w-5 h-5 absolute left-3.5 top-3" style={{ color: G.beigeDark }} />
+                <Lock className="w-5 h-5 absolute left-3.5 top-3 text-gray-400 pointer-events-none" />
                 <input
-                  type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••" required
-                  className="w-full pl-11 pr-4 py-2.5 rounded-xl text-sm font-medium outline-none transition-all border"
-                  style={{ background: G.beige50, borderColor: G.beige200, color: G.forest }}
-                  onFocus={(e) => { e.target.style.borderColor = G.forestMid; e.target.style.boxShadow = '0 0 0 3px rgba(30,82,25,0.1)'; }}
-                  onBlur={(e) => { e.target.style.borderColor = G.beige200; e.target.style.boxShadow = 'none'; }}
+                  id="login-password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  autoComplete="current-password"
+                  className="w-full pl-11 pr-11 py-2.5 rounded-xl text-sm font-medium outline-none transition-all border border-gray-300 bg-gray-50/70 text-gray-900 focus:bg-white focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/20 placeholder-gray-400"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 p-1 focus:outline-none"
+                  tabIndex={-1}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 
             <div className="flex items-center justify-between text-xs pt-1">
-              <label className="flex items-center cursor-pointer" style={{ color: '#5a4d2e' }}>
-                <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} className="w-4 h-4 rounded mr-2" style={{ accentColor: G.forestMid }} />
+              <label className="flex items-center cursor-pointer text-gray-600 font-medium">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-4 h-4 rounded mr-2 accent-[#6DCE05]"
+                />
                 Remember me
               </label>
-              <a href="#" onClick={(e) => e.preventDefault()} className="font-semibold" style={{ color: G.forestMid, textDecoration: 'none' }}>Forgot password?</a>
+              <a
+                href="#"
+                onClick={(e) => e.preventDefault()}
+                className="font-bold text-brand-dark hover:underline"
+              >
+                Forgot password?
+              </a>
             </div>
 
             <button
-              type="submit" disabled={loading}
-              className="w-full py-3 font-bold rounded-xl shadow-lg flex items-center justify-center space-x-2 transition-all disabled:opacity-60"
-              style={{ background: G.forestMid, color: G.beige50, boxShadow: '0 4px 15px rgba(30,82,25,0.35)' }}
-              onMouseEnter={(e) => { if (!loading) e.currentTarget.style.background = G.forest; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = G.forestMid; }}
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 bg-brand-accent hover:bg-brand-accent-hover text-brand-dark font-extrabold rounded-xl shadow-lg shadow-brand-accent/25 flex items-center justify-center space-x-2 transition-all disabled:opacity-60 active:scale-[0.99]"
             >
               <LogIn className="w-4 h-4" />
               <span>{loading ? 'Authenticating...' : 'Sign In'}</span>
             </button>
           </form>
 
-          {/* Demo Credentials */}
-          <div className="border-t pt-5 space-y-3" style={{ borderColor: G.beige200 }}>
-            <div className="flex items-center space-x-1.5 text-xs font-bold uppercase tracking-wider" style={{ color: '#5a4d2e' }}>
-              <Key className="w-3.5 h-3.5" style={{ color: G.forestMid }} />
-              <span>Quick Demo Credentials</span>
+          {/* Quick Demo Credentials */}
+          <div className="border-t border-gray-100 pt-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-1.5 text-xs font-bold uppercase tracking-wider text-gray-700">
+                <Key className="w-3.5 h-3.5 text-brand-dark" />
+                <span>Quick Demo Accounts</span>
+              </div>
+              <span className="text-[10px] text-gray-400 font-medium">Click to 1-click log in</span>
             </div>
             <div className="grid grid-cols-3 gap-2 text-xs">
               {[
-                { label: 'Customer', email: 'customer@example.com', pass: 'customer123' },
-                { label: 'Operator', email: 'operator@example.com', pass: 'operator123' },
-                { label: 'Admin', email: 'admin@example.com', pass: 'admin123' },
-              ].map(({ label, email: e, pass }) => (
+                { label: 'Customer', email: 'customer@demo.com', pass: 'Demo@123', desc: 'Passenger' },
+                { label: 'Operator', email: 'operator@demo.com', pass: 'Demo@123', desc: 'Fleet Partner' },
+                { label: 'Admin', email: 'admin@demo.com', pass: 'Demo@123', desc: 'Super Admin' },
+              ].map(({ label, email: e, pass, desc }) => (
                 <button
-                  key={label} type="button" onClick={() => fillDemo(e, pass)}
-                  className="p-2.5 rounded-xl border text-left transition-all"
-                  style={{ background: G.beige50, borderColor: G.beige200 }}
-                  onMouseEnter={(el) => { el.currentTarget.style.borderColor = G.accent; el.currentTarget.style.background = '#f0f5ef'; }}
-                  onMouseLeave={(el) => { el.currentTarget.style.borderColor = G.beige200; el.currentTarget.style.background = G.beige50; }}
+                  key={label}
+                  type="button"
+                  disabled={loading}
+                  onClick={() => handleQuickDemo(e, pass)}
+                  className="p-2.5 rounded-xl border border-gray-200 bg-gray-50/70 hover:bg-brand-accent/20 hover:border-brand-accent text-left transition-all group disabled:opacity-50 active:scale-[0.98]"
+                  title={`1-Click log in as ${label} (${e})`}
                 >
-                  <p className="font-bold" style={{ color: G.forest }}>{label}</p>
-                  <p className="text-[10px] mt-0.5" style={{ color: G.beigeDark }}>{e}</p>
+                  <p className="font-bold text-gray-900 group-hover:text-brand-dark flex items-center justify-between">
+                    <span>{label}</span>
+                    <span className="text-[9px] text-brand-dark font-extrabold uppercase bg-brand-accent/30 px-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">Go →</span>
+                  </p>
+                  <p className="text-[10px] text-gray-400 mt-0.5 truncate">{desc}</p>
                 </button>
               ))}
             </div>
+          </div>
+
+          <div className="pt-1 text-center">
+            <p className="text-[11px] text-gray-400 flex items-center justify-center space-x-1">
+              <ShieldCheck className="w-3.5 h-3.5 text-brand-dark" />
+              <span>Protected by 256-bit SSL encryption</span>
+            </p>
           </div>
         </div>
       </div>

@@ -73,7 +73,7 @@ router.get('/:id', routeController.getRouteById);
 router.post(
   '/',
   authenticate,
-  authorize('admin'),
+  authorize('operator', 'admin'),
   createRouteValidator,
   validate,
   auditLogger('CREATE_ROUTE', 'Route'),

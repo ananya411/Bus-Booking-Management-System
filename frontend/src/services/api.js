@@ -1,7 +1,11 @@
 import axios from 'axios';
 
+// Detect API base URL: Supports VITE_API_URL on Netlify, fallback to local Vite /api proxy
+const rawBaseURL = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '/api';
+const baseURL = rawBaseURL.endsWith('/api') ? rawBaseURL : `${rawBaseURL.replace(/\/$/, '')}/api`;
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -57,6 +61,7 @@ export const tripApi = {
 // Bus APIs
 export const busApi = {
   getBuses: (params) => api.get('/buses', { params }),
+  getMyBuses: (params) => api.get('/buses/my', { params }).catch(() => api.get('/buses', { params })),
   getBusById: (busId) => api.get(`/buses/${busId}`),
   createBus: (data) => api.post('/buses', data),
   updateBus: (busId, data) => api.put(`/buses/${busId}`, data),

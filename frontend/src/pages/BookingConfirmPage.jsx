@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { bookingApi } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
+import { resolveCityName, resolvePointName } from '../utils/formatters';
 import { 
   Bus, Clock, MapPin, Calendar, CreditCard, ShieldCheck, 
   User, CheckCircle2, AlertCircle, ChevronLeft, Lock 
@@ -93,7 +94,7 @@ export default function BookingConfirmPage() {
       <div className="max-w-4xl mx-auto space-y-6">
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center text-sm font-semibold text-gray-600 hover:text-indigo-600 transition-colors"
+          className="flex items-center text-sm font-semibold text-gray-600 hover:text-brand-dark transition-colors"
         >
           <ChevronLeft className="w-4 h-4 mr-1" />
           Back to Passenger Details
@@ -122,7 +123,7 @@ export default function BookingConfirmPage() {
                 </div>
                 <div className="text-right">
                   <span className="text-xs text-gray-400">Seats</span>
-                  <p className="text-sm font-bold text-indigo-600">{selectedSeats.join(', ')}</p>
+                  <p className="text-sm font-bold text-brand-dark bg-brand-accent/20 px-2 py-0.5 rounded-lg inline-block">{selectedSeats.join(', ')}</p>
                 </div>
               </div>
 
@@ -131,15 +132,15 @@ export default function BookingConfirmPage() {
                 <div className="p-3 bg-gray-50 rounded-xl space-y-1">
                   <span className="text-gray-400 font-semibold uppercase">Departure</span>
                   <p className="font-bold text-gray-900 text-sm">{tripDetails?.departure_time || '08:00 AM'}</p>
-                  <p className="text-gray-600">{route.source || 'Origin'}</p>
-                  <p className="text-indigo-600 font-medium truncate">Boarding: {boardingPoint}</p>
+                  <p className="text-gray-600">{resolveCityName(route.source, 'Origin')}</p>
+                  <p className="text-emerald-700 font-medium truncate">Boarding: {resolvePointName(boardingPoint, 'Main Bus Terminal')}</p>
                 </div>
 
                 <div className="p-3 bg-gray-50 rounded-xl space-y-1">
                   <span className="text-gray-400 font-semibold uppercase">Arrival</span>
                   <p className="font-bold text-gray-900 text-sm">{tripDetails?.arrival_time || '02:00 PM'}</p>
-                  <p className="text-gray-600">{route.destination || 'Destination'}</p>
-                  <p className="text-indigo-600 font-medium truncate">Dropping: {droppingPoint}</p>
+                  <p className="text-gray-600">{resolveCityName(route.destination, 'Destination')}</p>
+                  <p className="text-emerald-700 font-medium truncate">Dropping: {resolvePointName(droppingPoint, 'City Hub')}</p>
                 </div>
               </div>
             </div>
@@ -160,7 +161,7 @@ export default function BookingConfirmPage() {
                   <tbody className="divide-y divide-gray-100">
                     {passengers.map((p, i) => (
                       <tr key={i} className="hover:bg-gray-50/50">
-                        <td className="py-3 px-3 font-bold text-indigo-600">{p.seat_number}</td>
+                        <td className="py-3 px-3 font-bold text-brand-dark">{p.seat_number}</td>
                         <td className="py-3 px-3 font-semibold text-gray-900">{p.name}</td>
                         <td className="py-3 px-3 text-gray-600">{p.age} yrs</td>
                         <td className="py-3 px-3 capitalize text-gray-600">{p.gender}</td>
@@ -186,7 +187,7 @@ export default function BookingConfirmPage() {
             {/* Simulated Payment Selector */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4">
               <h3 className="text-base font-bold text-gray-900 flex items-center space-x-2">
-                <CreditCard className="w-5 h-5 text-indigo-600" />
+                <CreditCard className="w-5 h-5 text-brand-dark" />
                 <span>Simulated Payment Method</span>
               </h3>
 
@@ -202,13 +203,13 @@ export default function BookingConfirmPage() {
                     onClick={() => setPaymentMethod(mode.id)}
                     className={`p-3 rounded-xl border text-left text-xs font-semibold transition-all ${
                       paymentMethod === mode.id
-                        ? 'border-indigo-600 bg-indigo-50 text-indigo-700 ring-2 ring-indigo-500/20'
+                        ? 'border-brand-accent bg-brand-accent/15 text-brand-dark ring-2 ring-brand-accent/30 font-bold'
                         : 'border-gray-200 text-gray-700 hover:bg-gray-50'
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <span>{mode.label}</span>
-                      {paymentMethod === mode.id && <CheckCircle2 className="w-4 h-4 text-indigo-600" />}
+                      {paymentMethod === mode.id && <CheckCircle2 className="w-4 h-4 text-brand-dark" />}
                     </div>
                   </button>
                 ))}
@@ -240,7 +241,7 @@ export default function BookingConfirmPage() {
 
               <div className="border-t border-dashed border-gray-200 pt-3 flex justify-between items-center text-sm">
                 <span className="font-bold text-gray-900">Total Payable</span>
-                <span className="text-2xl font-black text-indigo-600">₹{totalFare}</span>
+                <span className="text-2xl font-black text-brand-dark">₹{totalFare}</span>
               </div>
             </div>
 
@@ -248,11 +249,11 @@ export default function BookingConfirmPage() {
               type="button"
               onClick={handleConfirmAndPay}
               disabled={submitting}
-              className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/30 flex items-center justify-center space-x-2 transition-all transform active:scale-95"
+              className="w-full py-3.5 bg-brand-accent hover:bg-brand-accent-hover disabled:opacity-60 text-brand-dark font-extrabold rounded-xl shadow-lg shadow-brand-accent/25 flex items-center justify-center space-x-2 transition-all transform active:scale-95"
             >
               {submitting ? (
                 <>
-                  <LoadingSpinner size="sm" text="" className="py-0 mr-2 text-white" />
+                  <LoadingSpinner size="sm" text="" className="py-0 mr-2 text-brand-dark" />
                   <span>Processing Payment...</span>
                 </>
               ) : (

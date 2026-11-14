@@ -6,6 +6,7 @@ import ErrorMessage from '../components/ErrorMessage';
 import SuccessMessage from '../components/SuccessMessage';
 import StatusBadge from '../components/StatusBadge';
 import Modal from '../components/Modal';
+import { resolveCityName, resolvePointName } from '../utils/formatters';
 import { 
   Bus, Ticket, Search, AlertCircle, ChevronDown, ChevronUp, 
   MapPin, Calendar, Clock, XCircle, Printer, ArrowRight 
@@ -89,7 +90,7 @@ export default function MyBookingsPage() {
 
           <Link
             to="/search"
-            className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl shadow-md transition-all"
+            className="px-5 py-2.5 bg-brand-accent hover:bg-brand-accent-hover text-brand-dark font-extrabold text-sm rounded-xl shadow-md transition-all"
           >
             Book New Ticket
           </Link>
@@ -125,8 +126,8 @@ export default function MyBookingsPage() {
           </div>
         ) : filteredBookings.length === 0 ? (
           <div className="bg-white rounded-2xl p-12 text-center border border-gray-100 shadow-sm space-y-4">
-            <div className="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mx-auto text-indigo-600">
-              <Ticket className="w-8 h-8" />
+            <div className="w-16 h-16 bg-[#0A261D]/10 rounded-full flex items-center justify-center mx-auto text-brand-dark">
+              <Ticket className="w-8 h-8 text-brand-accent" />
             </div>
             <h3 className="text-lg font-bold text-gray-900">No bookings found</h3>
             <p className="text-sm text-gray-500 max-w-sm mx-auto">
@@ -135,7 +136,7 @@ export default function MyBookingsPage() {
             <div>
               <Link
                 to="/search"
-                className="inline-flex items-center px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-xl shadow-sm"
+                className="inline-flex items-center px-6 py-2.5 bg-brand-accent hover:bg-brand-accent-hover text-brand-dark font-extrabold text-sm rounded-xl shadow-sm"
               >
                 Explore Buses Now
               </Link>
@@ -143,9 +144,9 @@ export default function MyBookingsPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            {filteredBookings.map((booking) => {
-              const bookingId = booking.id || booking.booking_id;
-              const pnr = booking.pnr || booking.PNR || `BM-${bookingId}`;
+            {filteredBookings.map((booking, bIdx) => {
+              const bookingId = booking._id || booking.id || booking.booking_id || `booking-${bIdx}`;
+              const pnr = booking.pnr || booking.PNR || (booking._id ? `BM-${String(booking._id).slice(-6).toUpperCase()}` : `BM-${bIdx + 1}`);
               const trip = booking.Trip || booking.trip || {};
               const bus = trip.Bus || trip.bus || booking.Bus || {};
               const route = trip.Route || trip.route || booking.Route || {};
@@ -165,16 +166,16 @@ export default function MyBookingsPage() {
                   >
                     <div className="space-y-2 flex-1">
                       <div className="flex items-center space-x-3">
-                        <span className="font-mono text-sm font-black text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg">
+                        <span className="font-mono text-sm font-black text-brand-dark bg-brand-accent/20 border border-brand-accent/30 px-2.5 py-1 rounded-lg">
                           PNR: {pnr}
                         </span>
                         <StatusBadge status={booking.status || 'CONFIRMED'} />
                       </div>
 
                       <div className="flex items-center space-x-3 text-base font-bold text-gray-900">
-                        <span>{route.source || 'Origin'}</span>
+                        <span>{resolveCityName(route.source, 'Origin')}</span>
                         <ArrowRight className="w-4 h-4 text-gray-400" />
-                        <span>{route.destination || 'Destination'}</span>
+                        <span>{resolveCityName(route.destination, 'Destination')}</span>
                       </div>
 
                       <div className="flex items-center space-x-4 text-xs text-gray-500">
@@ -212,7 +213,7 @@ export default function MyBookingsPage() {
                         <div className="p-3 bg-white rounded-xl border border-gray-100 space-y-1">
                           <span className="font-semibold text-gray-400 uppercase">Boarding Point</span>
                           <p className="font-bold text-gray-900 text-sm">
-                            {booking.boarding_point || route.source || 'Main Terminal'}
+                            {resolvePointName(booking.boarding_point, resolveCityName(route.source, 'Main Terminal'))}
                           </p>
                           <p className="text-gray-500">Time: {trip.departure_time || '08:00 AM'}</p>
                         </div>
@@ -220,7 +221,7 @@ export default function MyBookingsPage() {
                         <div className="p-3 bg-white rounded-xl border border-gray-100 space-y-1">
                           <span className="font-semibold text-gray-400 uppercase">Dropping Point</span>
                           <p className="font-bold text-gray-900 text-sm">
-                            {booking.dropping_point || route.destination || 'City Center'}
+                            {resolvePointName(booking.dropping_point, resolveCityName(route.destination, 'City Center'))}
                           </p>
                           <p className="text-gray-500">Time: {trip.arrival_time || '02:00 PM'}</p>
                         </div>
@@ -244,7 +245,7 @@ export default function MyBookingsPage() {
                               {passengers.length > 0 ? (
                                 passengers.map((p, idx) => (
                                   <tr key={idx}>
-                                    <td className="py-2.5 px-3 font-bold text-indigo-600">
+                                    <td className="py-2.5 px-3 font-bold text-brand-dark">
                                       Seat {p.seat_number || p.seatNumber}
                                     </td>
                                     <td className="py-2.5 px-3 font-medium text-gray-900">{p.name}</td>
@@ -269,7 +270,7 @@ export default function MyBookingsPage() {
                       <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
                         <Link
                           to={`/booking/ticket/${bookingId}`}
-                          className="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors border border-indigo-200"
+                          className="px-4 py-2 bg-brand-dark hover:bg-brand-darker text-brand-accent rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors border border-brand-border"
                         >
                           <Printer className="w-3.5 h-3.5" />
                           <span>View & Print E-Ticket</span>
@@ -323,7 +324,7 @@ export default function MyBookingsPage() {
                 onChange={(e) => setCancelReason(e.target.value)}
                 placeholder="e.g. Change of travel plans, unexpected event..."
                 rows="3"
-                className="w-full p-3 bg-gray-50 border border-gray-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full p-3 bg-gray-50 border border-gray-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-brand-accent"
               />
             </div>
 

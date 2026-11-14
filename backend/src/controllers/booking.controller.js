@@ -4,7 +4,17 @@ const { successResponse } = require('../utils/response');
 
 const createBooking = async (req, res, next) => {
   try {
-    const { tripId, passengers, boardingPoint, droppingPoint } = req.body;
+    const tripId = req.body.tripId || req.body.trip_id;
+    const rawPassengers = req.body.passengers || [];
+    const passengers = rawPassengers.map((p) => ({
+      name: p.name,
+      age: Number(p.age),
+      gender: p.gender || 'male',
+      seatNumber: (p.seatNumber || p.seat_number || '').toString().trim().toUpperCase(),
+    }));
+    const boardingPoint = req.body.boardingPoint || req.body.boarding_point;
+    const droppingPoint = req.body.droppingPoint || req.body.dropping_point;
+
     const booking = await bookingService.createBooking(
       req.user._id,
       tripId,
@@ -48,13 +58,14 @@ const getBookingByPnr = async (req, res, next) => {
 
 const cancelBooking = async (req, res, next) => {
   try {
-    const booking = await cancellationService.cancelBooking(
+    const result = await cancellationService.cancelBooking(
       req.params.id,
-      req.user._id,
+      req.user,
       req.user.role,
-      req.ip
+      req.ip,
+      req.body.reason || ''
     );
-    return successResponse(res, booking, 'Booking cancelled successfully', 200);
+    return successResponse(res, result, 'Booking cancelled successfully', 200);
   } catch (error) {
     next(error);
   }
@@ -65,5 +76,5 @@ module.exports = {
   getBookings,
   getBookingById,
   getBookingByPnr,
-  cancelBooking
+  cancelBooking,
 };

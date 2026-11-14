@@ -2,7 +2,30 @@ const { body } = require('express-validator');
 
 const busTypes = ['AC Sleeper', 'AC Seater', 'Non-AC Sleeper', 'Non-AC Seater', 'Volvo', 'Mini'];
 
+const normalizeBusInput = (val, { req }) => {
+  req.body.busNumber = (req.body.busNumber || req.body.bus_number || '').trim().toUpperCase();
+  req.body.name = (req.body.name || req.body.bus_name || '').trim();
+
+  let typeVal = req.body.type || req.body.bus_type || 'Volvo';
+  if (typeVal.toLowerCase().includes('non-ac') && typeVal.toLowerCase().includes('sleeper')) typeVal = 'Non-AC Sleeper';
+  else if (typeVal.toLowerCase().includes('non-ac') && typeVal.toLowerCase().includes('seater')) typeVal = 'Non-AC Seater';
+  else if (typeVal.toLowerCase().includes('sleeper')) typeVal = 'AC Sleeper';
+  else if (typeVal.toLowerCase().includes('seater')) typeVal = 'AC Seater';
+  else if (typeVal.toLowerCase().includes('mini')) typeVal = 'Mini';
+  else if (!busTypes.includes(typeVal)) typeVal = 'Volvo';
+  req.body.type = typeVal;
+
+  req.body.totalSeats = Number(req.body.totalSeats || req.body.total_seats || 36);
+  if (!req.body.seatLayout || !req.body.seatLayout.rows) {
+    const seatsPerRow = 4;
+    const rows = Math.ceil(req.body.totalSeats / seatsPerRow);
+    req.body.seatLayout = { rows, seatsPerRow, layout: [] };
+  }
+  return true;
+};
+
 const createBusValidator = [
+  body('busNumber').custom(normalizeBusInput),
   body('busNumber')
     .trim()
     .notEmpty()

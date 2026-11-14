@@ -40,7 +40,18 @@ const getTripSeats = async (req, res, next) => {
 
 const createTrip = async (req, res, next) => {
   try {
-    const trip = await tripService.createTrip(req.body);
+    const payload = {
+      ...req.body,
+      bus: req.body.bus || req.body.bus_id,
+      route: req.body.route || req.body.route_id,
+      travelDate: req.body.travelDate || req.body.trip_date,
+      departureTime: req.body.departureTime || req.body.departure_time,
+      arrivalTime: req.body.arrivalTime || req.body.arrival_time,
+    };
+    if (req.user && req.user.role === 'operator') {
+      payload.operator = req.user._id;
+    }
+    const trip = await tripService.createTrip(payload, req.user);
     return successResponse(res, trip, 'Trip scheduled successfully', 201);
   } catch (error) {
     next(error);
@@ -49,7 +60,15 @@ const createTrip = async (req, res, next) => {
 
 const updateTrip = async (req, res, next) => {
   try {
-    const trip = await tripService.updateTrip(req.params.id, req.body);
+    const payload = {
+      ...req.body,
+      bus: req.body.bus || req.body.bus_id,
+      route: req.body.route || req.body.route_id,
+      travelDate: req.body.travelDate || req.body.trip_date,
+      departureTime: req.body.departureTime || req.body.departure_time,
+      arrivalTime: req.body.arrivalTime || req.body.arrival_time,
+    };
+    const trip = await tripService.updateTrip(req.params.id, payload, req.user);
     return successResponse(res, trip, 'Trip updated successfully', 200);
   } catch (error) {
     next(error);
@@ -58,7 +77,7 @@ const updateTrip = async (req, res, next) => {
 
 const deleteTrip = async (req, res, next) => {
   try {
-    const result = await tripService.deleteTrip(req.params.id);
+    const result = await tripService.deleteTrip(req.params.id, req.user);
     return successResponse(res, result, 'Trip deleted successfully', 200);
   } catch (error) {
     next(error);
